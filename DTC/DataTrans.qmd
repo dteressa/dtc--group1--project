@@ -1,0 +1,136 @@
+---
+title: "DataTransChall"
+author: "Vaishnavi Thorat"
+format: html
+editor: visual
+---
+
+## \# Data Translation Project
+
+```{r}
+# Install packages if missing
+if (!requireNamespace("ggplot2", quietly = TRUE)) install.packages("ggplot2")
+if (!requireNamespace("dplyr", quietly = TRUE)) install.packages("dplyr")
+if (!requireNamespace("fixest", quietly = TRUE)) install.packages("fixest")
+if (!requireNamespace("modelsummary", quietly = TRUE)) install.packages("modelsummary")
+
+library(ggplot2)
+library(dplyr)
+library(fixest)
+library(modelsummary)
+```
+
+```{r}
+load("DWI_Data.rdata")
+
+df <- dwi   # IMPORTANT: set df as the dataset
+names(df)   # check columns
+```
+
+```{r}
+df <- df |>
+  dplyr::mutate(
+    bac = as.numeric(bac1),
+    recidivism = as.numeric(recidivism),
+    male = as.numeric(male),
+    white = as.numeric(white),
+    aged = as.numeric(aged),
+    acc = as.numeric(acc)
+  ) |>
+  dplyr::filter(!is.na(bac), !is.na(recidivism))
+```
+
+```{r}
+# Debug checks
+class(df)
+dim(df)
+"recidivism" %in% names(df)
+names(df)
+```
+
+```{r}
+ggplot(df, aes(x = bac)) +
+  geom_histogram(bins = 80) +
+  geom_vline(xintercept = 0.08, linewidth = 1) +
+  geom_vline(xintercept = 0.15, linewidth = 1) +
+  labs(title = "Distribution of BAC (bac1)", x = "BAC", y = "Count")
+```
+
+This figure shows the distribution of BAC levels in the dataset. The vertical lines represent the legal thresholds of 0.08 and 0.15 BAC, which correspond to DUI penalties used in the regression discontinuity design.
+
+```{r}
+df_binned <- df %>%
+  mutate(bac_bin = floor(bac / 0.002) * 0.002) %>%
+  group_by(bac_bin) %>%
+  summarise(recid_rate = mean(recidivism), n = n(), .groups = "drop")
+
+ggplot(df_binned, aes(x = bac_bin, y = recid_rate)) +
+  geom_point() +
+  geom_vline(xintercept = 0.08, linewidth = 1) +
+  geom_vline(xintercept = 0.15, linewidth = 1) +
+  labs(title = "Recidivism Rate by BAC (binned)", x = "BAC (binned)", y = "Mean recidivism")
+```
+
+This figure shows the relationship between BAC and the average recidivism rate. BAC values are grouped into small bins to makethe pattern easier to observe. The vertical lines indicate the legal BAC thresholds.
+
+```{r}
+bw <- 0.05
+
+df08 <- df %>%
+  mutate(
+    treat = ifelse(bac >= 0.08, 1, 0),
+    x = bac - 0.08
+  ) %>%
+  filter(abs(x) <= bw)
+
+m08 <- feols(
+  recidivism ~ treat + x + treat:x + male + white + aged + acc,
+  data = df08,
+  vcov = "HC1"
+)
+
+summary(m08)
+```
+
+To estimate the causal effect of crossing the BAC threshold, we estimate a local linear regression discontinuity model around the cutoff. The treatment variable equals 1 when BAC is above the legal limit.
+
+```{r}
+df15 <- df %>%
+  mutate(
+    treat = ifelse(bac >= 0.15, 1, 0),
+    x = bac - 0.15
+  ) %>%
+  filter(abs(x) <= bw)
+
+m15 <- feols(
+  recidivism ~ treat + x + treat:x + male + white + aged + acc,
+  data = df15,
+  vcov = "HC1"
+)
+
+summary(m15)
+```
+
+```{r}
+modelsummary(
+  list("RDD cutoff 0.08" = m08, "RDD cutoff 0.15" = m15),
+  statistic = "({std.error})",
+  stars = TRUE,
+  output = "markdown"
+)
+```
+
+```{r}
+balance_models_08 <- list(
+  male = feols(male ~ treat + x + treat:x, data = df08, vcov = "HC1"),
+  white = feols(white ~ treat + x + treat:x, data = df08, vcov = "HC1"),
+  aged = feols(aged ~ treat + x + treat:x, data = df08, vcov = "HC1"),
+  acc = feols(acc ~ treat + x + treat:x, data = df08, vcov = "HC1")
+)
+
+modelsummary(balance_models_08, statistic = "({std.error})", stars = TRUE, output = "markdown")
+```
+
+### Conclusion:
+
+The analysis shows that crossing the legal BAC threshold affects future driving behavior. Drivers with BAC levels just above 0.08 have a lower probability of recidivism compared to those just below the cutoff, suggesting that DUI penalties may deter repeat offenses. The effect at the 0.15 threshold is smaller but still present. Overall, the results indicate that stricter DUI enforcement can reduce repeat drunk-driving behavior.
