@@ -1,0 +1,325 @@
+---
+title: "Do harsher punishments for drunk driving reduce future offenses?"
+author: "Group 1"
+format: html
+editor: visual
+---
+
+## Abstract
+
+This study uses a regression discontinuity design based on the 0.08 BAC legal threshold to estimate the causal effect of harsher DUI penalties on future drunk-driving recidivism. Comparing drivers just below and just above the cutoff, we find that harsher penalties reduce the probability of future offenses by about 1.6 percentage points.
+
+## Introduction
+
+Drunk driving is a major public safety issue. Governments often use stricter penalties to discourage drivers from driving under the influence of alcohol. One common policy in the United States is the use of legal blood alcohol concentration (BAC) thresholds that trigger harsher punishments once crossed.
+
+In Washington State, drivers with a BAC level of 0.08 or higher receive substantially harsher legal penalties than drivers just below that threshold. This creates a natural cutoff that allows us to study whether stricter punishment reduces the probability of future drunk-driving offenses.
+
+This project examines whether drivers who barely exceed the 0.08 BAC threshold are less likely to commit another drunk-driving offense compared to drivers just below the threshold. To estimate this causal effect, we use a Regression Discontinuity Design (RDD). The key idea of this method is that drivers very close to the cutoff are likely to be similar in all respects except for the harsher punishment they receive.
+
+By comparing drivers just above and just below the threshold, we can estimate whether harsher DUI penalties reduce the likelihood of future recidivism.
+
+## Data Description
+
+The dataset used in this analysis comes from traffic stops in Washington State. Each observation represents a driver who was stopped and tested for alcohol using two breathalyzer tests. The dataset contains information about the driver's blood alcohol concentration (BAC), demographic characteristics, and whether the driver committed another drunk-driving offense in the future.
+
+Two BAC tests are recorded in the data: `bac1` and `bac2`. Following the approach used in many regression discontinuity studies, we use the minimum value of the two BAC tests as the running variable. This reduces measurement error and ensures that drivers are not incorrectly classified above the legal threshold.
+
+The key variables used in the analysis include:
+
+-   **bac1, bac2** – Blood alcohol concentration from two breathalyzer tests
+-   **recidivism** – Indicator for whether the driver committed another drunk-driving offense in the future
+-   **male** – Indicator for whether the driver is male
+-   **white** – Indicator for whether the driver is white
+-   **aged** – Age of the driver
+-   **acc** – Indicator for whether an accident occurred at the time of the traffic stop
+-   **year** – Year of the incident
+
+Our analysis focuses on the BAC threshold of 0.08, which is the legal limit that triggers harsher DUI penalties.
+
+### Why we use the minimum of the two BAC tests (bac_min)
+
+Each driver is given two breathalyzer tests (`bac1` and `bac2`). For this project we define the running variable as `bac_min = min(bac1, bac2)`. We do this for two reasons. First, BAC measurements contain noise due to device and timing variation. Using the minimum of two tests reduces the chance that a single high reading (caused by measurement error) incorrectly classifies a driver as being above the legal threshold. Second, because the RDD relies on comparing drivers just below and just above the cutoff, misclassification near the cutoff is especially harmful even small measurement error can move observations across 0.08 and bias the estimated discontinuity. Using `bac_min` is a conservative choice that improves the credibility of the treatment assignment rule used in the design.
+
+```{r}
+# Load required packages
+library(dplyr)
+library(ggplot2)
+library(fixest)
+library(rddensity)
+library(rdrobust)
+
+# Load dataset
+load("DWI_Data.rdata")
+
+# Create running variable and treatment indicator
+dwi <- dwi %>%
+  mutate(
+    bac_min = pmin(bac1, bac2, na.rm = TRUE),
+    running = bac_min - 0.08,
+    DUI = ifelse(bac_min >= 0.08, 1, 0)
+  )
+```
+
+## 
+
+## Exploratory Data Analysis (EDA)
+
+Before estimating the regression discontinuity design, we first explore the running variable and the outcome near the legal threshold. This step is important because RDD is a local design. The credibility of the approach depends on understanding what the data look like close to the cutoff.
+
+### Summary statistics for the running variable
+
+We summarize the distribution of our running variable (`bac_min`), which is the minimum of the two BAC tests. This helps us understand the scale and spread of BAC values in the dataset and confirms that there is substantial variation in BAC.
+
+```{r}
+summary(dwi$bac_min)
+mean(dwi$bac_min, na.rm = TRUE)
+median(dwi$bac_min, na.rm = TRUE)
+```
+
+The summary statistics show that the average BAC in the dataset is approximately 0.139, while the median BAC is 0.136. Both values are well above the legal limit of 0.08. This indicates that many drivers in the dataset were substantially intoxicated at the time of the traffic stop. This pattern is expected because the dataset focuses on drivers suspected of driving under the influence rather than the general driving population. Importantly, there are still many observations near the 0.08 threshold, which allows us to implement the regression discontinuity design.
+
+### Distribution of BAC near the cutoff
+
+We next visualize the distribution of BAC values near the legal threshold of 0.08. This is an important diagnostic step because regression discontinuity designs assume that individuals cannot precisely manipulate the running variable around the cutoff. If drivers could manipulate their BAC measurement to avoid harsher penalties, we might observe unusual bunching just below the threshold.
+
+```{r}
+ggplot(dwi %>% filter(bac_min >= 0.05 & bac_min <= 0.11),
+       aes(x = bac_min)) +
+  geom_histogram(binwidth = 0.002, fill = "lightblue", color = "black") +
+  geom_vline(xintercept = 0.08, linetype = "dashed", color = "red") +
+  labs(title = "Distribution of BAC around the 0.08 threshold",
+       x = "Blood Alcohol Concentration (BAC)",
+       y = "Count")
+```
+
+The histogram shows the distribution of BAC values in a neighborhood around the legal threshold of 0.08. The dashed vertical line indicates the cutoff at which harsher DUI penalties begin. The distribution appears relatively smooth around the threshold, with no obvious spike or drop exactly at 0.08. This is important for the validity of the regression discontinuity design because it suggests that drivers are unlikely to be able to precisely manipulate their BAC measurements to fall just below the legal limit. If drivers could manipulate the running variable, we would expect to see bunching just below the cutoff and fewer observations just above it. Since the distribution appears continuous, the assumption of no precise manipulation is plausible.
+
+## Testing the RDD Assumption: Density Test
+
+While the histogram suggests that the BAC distribution is smooth around the 0.08 threshold, visual inspection alone is not sufficient to verify the assumption of no manipulation. Therefore, we conduct a formal density test using the \`rddensity\` package.
+
+This test evaluates whether the density of the running variable changes discontinuously at the cutoff. The null hypothesis is that the density of BAC is continuous at 0.08.
+
+```{r}
+density_test <- rddensity(X = dwi$bac_min, c = 0.08)
+summary(density_test)
+```
+
+```{r}
+rdplotdensity(density_test, X = dwi$bac_min)
+```
+
+The density test evaluates whether there is a discontinuity in the distribution of BAC at the 0.08 cutoff. If drivers were able to manipulate their BAC readings to avoid harsher penalties, we would expect to see a sharp change in the density at the threshold.
+
+The test produces a robust p-value of 0.2298. Since this value is greater than 0.05, we fail to reject the null hypothesis that the density of BAC is continuous at the cutoff. This result suggests that there is no evidence of manipulation of the running variable around the threshold. Therefore, the key RDD assumption of no precise sorting appears to hold in this dataset.
+
+## Local RDD Sample
+
+```{r}
+dwi_local <- dwi %>%
+  filter(bac_min >= 0.05 & bac_min <= 0.11)
+```
+
+To implement the regression discontinuity design, we restrict the dataset to observations close to the 0.08 BAC cutoff. RDD estimates the causal effect using observations in a neighborhood around the threshold, where drivers just above and just below the cutoff are expected to be very similar except for the harsher punishment they receive.
+
+We therefore limit the sample to drivers with BAC values between 0.05 and 0.11. This bandwidth focuses the analysis on individuals who are relatively close to the threshold while still retaining enough observations to produce precise estimates. Restricting the sample in this way reduces bias from observations far from the cutoff, where the relationship between BAC and recidivism may follow a different trend.
+
+## Main Regression Discontinuity Model
+
+To estimate the causal effect of harsher DUI penalties on future recidivism, we implement a local linear regression discontinuity model. The treatment indicator (`DUI`) equals 1 for drivers with BAC values at or above the legal threshold of 0.08 and 0 otherwise.
+
+The running variable is the BAC level centered at the cutoff (`running = bac_min - 0.08`). Centering the running variable makes the cutoff equal to zero, which simplifies interpretation of the coefficients.
+
+The model allows the relationship between BAC and recidivism to have different slopes on either side of the cutoff by including an interaction between the treatment indicator and the running variable.
+
+The estimated model can be written as:
+
+recidivism_i = β₀ + β₁ DUI_i + β₂ running_i + β₃ (DUI_i × running_i) + ε_i
+
+In this specification, the coefficient β₁ represents the discontinuous jump in the probability of recidivism at the 0.08 BAC cutoff. This coefficient captures the causal effect of harsher DUI penalties for drivers whose BAC values are close to the threshold.
+
+```{r}
+rd_main <- feols(
+  recidivism ~ DUI + running + DUI:running,
+  data = dwi_local,
+  vcov = "hetero"
+)
+```
+
+```{r}
+summary(rd_main)
+```
+
+### Interpretation of the Main RDD Estimate
+
+The coefficient on the treatment indicator (DUI) represents the discontinuous change in the probability of recidivism at the 0.08 BAC cutoff. The estimate is -0.0162, meaning that drivers who are just above the legal threshold are about 1.6 percentage points less likely to commit another drunk-driving offense compared to drivers just below the cutoff.
+
+This effect is statistically significant at conventional levels (p ≈ 0.0014). Because the regression discontinuity design compares individuals with nearly identical BAC levels on either side of the threshold, this estimate can be interpreted as the causal effect of harsher DUI penalties for drivers close to the cutoff.
+
+The negative coefficient suggests that harsher punishments for drunk driving reduce the probability of future drunk-driving offenses. In other words, drivers who face the stricter legal consequences associated with BAC levels at or above 0.08 appear to be less likely to reoffend.
+
+## RD Model with Covariates 
+
+Our identification in RDD does not require control variables if the design assumptions hold. However, adding covariates can improve precision and provides a useful robustness check the estimated treatment effect should remain similar when we control for observable characteristics and year fixed effects.
+
+```{r}
+rd_controls <- feols(
+  recidivism ~ DUI + running + DUI:running +
+    male + white + aged + acc + factor(year),
+  data = dwi_local,
+  vcov = "hetero"
+)
+
+summary(rd_controls)
+```
+
+```{r}
+etable(
+  rd_main, rd_controls,
+  dict = c(
+    DUI = "BAC ≥ 0.08 (Harsher penalty)",
+    running = "BAC centered at 0.08",
+    `DUI:running` = "Harsher penalty × BAC centered",
+    male = "Male",
+    white = "White",
+    aged = "Age",
+    acc = "Accident at stop"
+  ),
+  title = "Table 1:RDD Estimates of Harsher DUI Penalties on Recidivism",
+  tex = FALSE
+)
+```
+
+### Comparing Models With and Without Covariates
+
+Table 1 reports the estimated effect of harsher DUI penalties using two specifications. The first model includes only the running variable and its interaction with the treatment indicator, while the second model adds demographic controls, an accident indicator, and year fixed effects.
+
+The estimated treatment effect is very similar across the two models. In the baseline specification, the coefficient on the treatment indicator is -0.0162, while the estimate in the covariate-adjusted model is -0.0163. Both estimates are statistically significant at the 1% level.
+
+The similarity of these coefficients suggests that the estimated effect is not driven by observable differences in driver characteristics around the cutoff. This stability is consistent with the core intuition of regression discontinuity designs individuals just above and just below the threshold are already comparable. As a result, adding covariates has little effect on the estimated treatment effect.
+
+Overall, the results provide evidence that harsher DUI penalties reduce the probability of future drunk-driving offenses for drivers near the 0.08 BAC threshold.
+
+## Bandwidth Sensitivity Analysis
+
+Regression discontinuity designs rely on observations close to the cutoff. However, the choice of bandwidth can influence the estimated treatment effect. If the bandwidth is too narrow, the estimate may be imprecise due to fewer observations. If it is too wide, the estimate may include observations far from the cutoff where the relationship between BAC and recidivism may differ.
+
+To evaluate the robustness of our results, we estimate the RDD model using three different bandwidths around the 0.08 cutoff. If the estimated treatment effect remains similar across these specifications, it strengthens confidence that our findings are not driven by the particular bandwidth choice.
+
+```{r}
+bw1 <- dwi %>% filter(bac_min >= 0.06 & bac_min <= 0.10)
+bw2 <- dwi %>% filter(bac_min >= 0.05 & bac_min <= 0.11)
+bw3 <- dwi %>% filter(bac_min >= 0.04 & bac_min <= 0.12)
+
+m_bw1 <- feols(
+  recidivism ~ DUI + running + DUI:running,
+  data = bw1,
+  vcov = "hetero"
+)
+
+m_bw2 <- feols(
+  recidivism ~ DUI + running + DUI:running,
+  data = bw2,
+  vcov = "hetero"
+)
+
+m_bw3 <- feols(
+  recidivism ~ DUI + running + DUI:running,
+  data = bw3,
+  vcov = "hetero"
+)
+
+etable(
+  m_bw1, m_bw2, m_bw3,
+  headers = c("0.06–0.10", "0.05–0.11", "0.04–0.12"),
+  title = "Table 2: Bandwidth Sensitivity of RDD Estimates",
+  tex = FALSE
+)
+```
+
+### Interpretation of Bandwidth Sensitivity
+
+Table 2 presents the RDD estimates using three different bandwidths around the 0.08 BAC cutoff. The first specification uses a narrow window (0.06-0.10), the second uses our baseline bandwidth (0.05-0.11), and the third uses a wider window (0.04-0.12).
+
+Across all three specifications, the estimated treatment effect remains negative and statistically significant. The estimated coefficient on the treatment indicator ranges from -0.0147 to -0.0162, indicating that drivers just above the 0.08 BAC threshold are about 1.5 to 1.6 percentage points less likely to commit another drunk-driving offense compared to drivers just below the cutoff.
+
+The similarity of the estimates across bandwidth choices suggests that our results are not sensitive to the particular window used around the cutoff. This robustness strengthens confidence that the observed reduction in recidivism reflects the causal impact of harsher DUI penalties rather than being driven by modeling choices.
+
+## Covariate Balance at the Cutoff
+
+A key RDD assumption is that individuals just below and just above the cutoff are comparable in all characteristics except for receiving the harsher DUI penalty.\
+To support this, we test whether observable covariates (sex, race, age, and accident indicator) show any discontinuous “jump” at BAC = 0.08. If these covariates are smooth through the cutoff, it strengthens the credibility of the design.
+
+```{r}
+# Covariate balance tests: do covariates jump at the cutoff?
+balance_male  <- feols(male  ~ DUI + running + DUI:running, data = dwi_local, vcov = "hetero")
+balance_white <- feols(white ~ DUI + running + DUI:running, data = dwi_local, vcov = "hetero")
+balance_age   <- feols(aged  ~ DUI + running + DUI:running, data = dwi_local, vcov = "hetero")
+balance_acc   <- feols(acc   ~ DUI + running + DUI:running, data = dwi_local, vcov = "hetero")
+
+etable(
+  balance_male, balance_white, balance_age, balance_acc,
+  headers = c("Male", "White", "Age", "Accident at Stop"),
+  dict = c(
+    DUI = "BAC ≥ 0.08 (Harsher penalty)",
+    running = "BAC centered at 0.08",
+    "DUI:running" = "Harsher penalty × BAC centered"
+  ),
+  title = "Covariate Balance Tests at the 0.08 Cutoff",
+  tex = FALSE
+)
+```
+
+### Interpretation of Covariate Balance Tests
+
+Table 3 reports regression discontinuity tests for observable driver characteristics. Each column estimates whether there is a discontinuity in a covariate at the 0.08 BAC cutoff using the same specification as the main RDD model.
+
+The coefficients on the treatment indicator (BAC ≥ 0.08) are small and statistically insignificant for all covariates, including gender, race, age, and whether the stop involved an accident. This suggests that these observable characteristics do not change discontinuously at the threshold.
+
+The absence of significant jumps in these covariates supports the key identifying assumption of the regression discontinuity design: drivers just above and just below the 0.08 BAC cutoff are similar in observable characteristics. Therefore, any discontinuity observed in recidivism at the cutoff is unlikely to be driven by differences in driver demographics or accident involvement.
+
+## Regression Discontinuity Visualization
+
+To visually illustrate the regression discontinuity design, we plot the average recidivism rate against BAC values around the 0.08 cutoff. Observations are grouped into small BAC bins to make the relationship easier to observe.
+
+We also overlay the fitted values from the local linear regression model estimated earlier. If harsher DUI penalties reduce recidivism, we expect to observe a downward jump in the probability of recidivism at the 0.08 BAC threshold.
+
+```{r}
+bins <- aggregate(recidivism ~ round(bac_min, 3),
+                  data = dwi_local, mean)
+
+grid <- data.frame(
+  bac_min = seq(min(dwi_local$bac_min),
+                max(dwi_local$bac_min),
+                by = 0.001)
+)
+
+grid$running <- grid$bac_min - 0.08
+grid$DUI <- ifelse(grid$bac_min >= 0.08, 1, 0)
+grid$yhat <- predict(rd_main, newdata = grid)
+
+ggplot(bins, aes(x = `round(bac_min, 3)`, y = recidivism)) +
+  geom_point() +
+  geom_vline(xintercept = 0.08, linetype = "dashed") +
+  geom_line(data = grid, aes(x = bac_min, y = yhat)) +
+  labs(title = "Figure 3: Regression Discontinuity Plot",
+       x = "BAC (binned)",
+       y = "Mean Recidivism")
+```
+
+### Interpretation of the RD Plot
+
+Figure 3 displays the relationship between BAC and the probability of future drunk-driving recidivism around the legal threshold of 0.08. Each point represents the average recidivism rate within small BAC bins, while the fitted lines show the predicted relationship from the regression discontinuity model on either side of the cutoff.
+
+The figure shows a visible downward shift in recidivism at the 0.08 BAC threshold. Drivers just above the cutoff appear to have a lower probability of committing another drunk-driving offense compared to drivers just below the threshold. This pattern is consistent with the regression results presented earlier and supports the conclusion that harsher DUI penalties reduce future drunk-driving recidivism.
+
+## Conclusion
+
+This project examined whether harsher punishments for drunk driving reduce the probability of future drunk-driving offenses. Using a regression discontinuity design based on the legal BAC threshold of 0.08, we compared drivers with BAC levels just below and just above the cutoff. Because these drivers have nearly identical BAC levels but face different legal consequences, the discontinuity at the threshold provides a credible way to estimate the causal effect of harsher penalties.
+
+Our results consistently show that drivers just above the 0.08 BAC threshold are less likely to commit another drunk-driving offense than those just below the cutoff. The main regression discontinuity estimate indicates that harsher DUI penalties reduce the probability of recidivism by approximately 1.6 percentage points.
+
+Several supporting analyses strengthen this conclusion. First, the density test shows no evidence that drivers manipulate their BAC measurements to avoid crossing the legal threshold, supporting the validity of the regression discontinuity design. Second, the estimated treatment effect remains stable when demographic controls and year fixed effects are added to the model. Third, the results are robust to different bandwidth choices around the cutoff. Finally, covariate balance tests show no discontinuities in observable driver characteristics at the threshold, suggesting that drivers on either side of the cutoff are comparable.
+
+Taken together, these findings provide evidence that harsher DUI penalties have a deterrent effect on future drunk-driving behavior. While the estimated reduction in recidivism is modest, it suggests that stricter legal consequences can play a role in discouraging repeat offenses and improving road safety.
