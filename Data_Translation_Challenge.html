@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Group 1">
+
+<title>Do harsher punishments for drunk driving reduce future offenses?</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="Data_Translation_Challenge_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Data_Translation_Challenge_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Data_Translation_Challenge_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Data_Translation_Challenge_files/libs/quarto-html/popper.min.js"></script>
+<script src="Data_Translation_Challenge_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Data_Translation_Challenge_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Data_Translation_Challenge_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Data_Translation_Challenge_files/libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Data_Translation_Challenge_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Data_Translation_Challenge_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Data_Translation_Challenge_files/libs/bootstrap/bootstrap-bb462d781dde1847d9e3ccf7736099dd.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body class="fullcontent quarto-light">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Do harsher punishments for drunk driving reduce future offenses?</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Group 1 </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="abstract" class="level2">
+<h2 class="anchored" data-anchor-id="abstract">Abstract</h2>
+<p>This study uses a regression discontinuity design based on the 0.08 BAC legal threshold to estimate the causal effect of harsher DUI penalties on future drunk-driving recidivism. Comparing drivers just below and just above the cutoff, we find that harsher penalties reduce the probability of future offenses by about 1.6 percentage points.</p>
+</section>
+<section id="introduction" class="level2">
+<h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Drunk driving is a major public safety issue. Governments often use stricter penalties to discourage drivers from driving under the influence of alcohol. One common policy in the United States is the use of legal blood alcohol concentration (BAC) thresholds that trigger harsher punishments once crossed.</p>
+<p>In Washington State, drivers with a BAC level of 0.08 or higher receive substantially harsher legal penalties than drivers just below that threshold. This creates a natural cutoff that allows us to study whether stricter punishment reduces the probability of future drunk-driving offenses.</p>
+<p>This project examines whether drivers who barely exceed the 0.08 BAC threshold are less likely to commit another drunk-driving offense compared to drivers just below the threshold. To estimate this causal effect, we use a Regression Discontinuity Design (RDD). The key idea of this method is that drivers very close to the cutoff are likely to be similar in all respects except for the harsher punishment they receive.</p>
+<p>By comparing drivers just above and just below the threshold, we can estimate whether harsher DUI penalties reduce the likelihood of future recidivism.</p>
+</section>
+<section id="data-description" class="level2">
+<h2 class="anchored" data-anchor-id="data-description">Data Description</h2>
+<p>The dataset used in this analysis comes from traffic stops in Washington State. Each observation represents a driver who was stopped and tested for alcohol using two breathalyzer tests. The dataset contains information about the driver’s blood alcohol concentration (BAC), demographic characteristics, and whether the driver committed another drunk-driving offense in the future.</p>
+<p>Two BAC tests are recorded in the data: <code>bac1</code> and <code>bac2</code>. Following the approach used in many regression discontinuity studies, we use the minimum value of the two BAC tests as the running variable. This reduces measurement error and ensures that drivers are not incorrectly classified above the legal threshold.</p>
+<p>The key variables used in the analysis include:</p>
+<ul>
+<li><strong>bac1, bac2</strong> – Blood alcohol concentration from two breathalyzer tests</li>
+<li><strong>recidivism</strong> – Indicator for whether the driver committed another drunk-driving offense in the future</li>
+<li><strong>male</strong> – Indicator for whether the driver is male</li>
+<li><strong>white</strong> – Indicator for whether the driver is white</li>
+<li><strong>aged</strong> – Age of the driver</li>
+<li><strong>acc</strong> – Indicator for whether an accident occurred at the time of the traffic stop</li>
+<li><strong>year</strong> – Year of the incident</li>
+</ul>
+<p>Our analysis focuses on the BAC threshold of 0.08, which is the legal limit that triggers harsher DUI penalties.</p>
+<section id="why-we-use-the-minimum-of-the-two-bac-tests-bac_min" class="level3">
+<h3 class="anchored" data-anchor-id="why-we-use-the-minimum-of-the-two-bac-tests-bac_min">Why we use the minimum of the two BAC tests (bac_min)</h3>
+<p>Each driver is given two breathalyzer tests (<code>bac1</code> and <code>bac2</code>). For this project we define the running variable as <code>bac_min = min(bac1, bac2)</code>. We do this for two reasons. First, BAC measurements contain noise due to device and timing variation. Using the minimum of two tests reduces the chance that a single high reading (caused by measurement error) incorrectly classifies a driver as being above the legal threshold. Second, because the RDD relies on comparing drivers just below and just above the cutoff, misclassification near the cutoff is especially harmful even small measurement error can move observations across 0.08 and bias the estimated discontinuity. Using <code>bac_min</code> is a conservative choice that improves the credibility of the treatment assignment rule used in the design.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load required packages</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>
+Attaching package: 'dplyr'</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:stats':
+
+    filter, lag</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>The following objects are masked from 'package:base':
+
+    intersect, setdiff, setequal, union</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(fixest)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'fixest' was built under R version 4.5.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rddensity)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'rddensity' was built under R version 4.5.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(rdrobust)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: package 'rdrobust' was built under R version 4.5.2</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load dataset</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="fu">load</span>(<span class="st">"DWI_Data.rdata"</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Create running variable and treatment indicator</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>dwi <span class="ot">&lt;-</span> dwi <span class="sc">%&gt;%</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">bac_min =</span> <span class="fu">pmin</span>(bac1, bac2, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">running =</span> bac_min <span class="sc">-</span> <span class="fl">0.08</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">DUI =</span> <span class="fu">ifelse</span>(bac_min <span class="sc">&gt;=</span> <span class="fl">0.08</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+</section>
+<section id="section" class="level2">
+<h2 class="anchored" data-anchor-id="section"></h2>
+</section>
+<section id="exploratory-data-analysis-eda" class="level2">
+<h2 class="anchored" data-anchor-id="exploratory-data-analysis-eda">Exploratory Data Analysis (EDA)</h2>
+<p>Before estimating the regression discontinuity design, we first explore the running variable and the outcome near the legal threshold. This step is important because RDD is a local design. The credibility of the approach depends on understanding what the data look like close to the cutoff.</p>
+<section id="summary-statistics-for-the-running-variable" class="level3">
+<h3 class="anchored" data-anchor-id="summary-statistics-for-the-running-variable">Summary statistics for the running variable</h3>
+<p>We summarize the distribution of our running variable (<code>bac_min</code>), which is the minimum of the two BAC tests. This helps us understand the scale and spread of BAC values in the dataset and confirms that there is substantial variation in BAC.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(dwi<span class="sc">$</span>bac_min)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.0000  0.1030  0.1360  0.1393  0.1730  0.4350 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">mean</span>(dwi<span class="sc">$</span>bac_min, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.1392809</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">median</span>(dwi<span class="sc">$</span>bac_min, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.136</code></pre>
+</div>
+</div>
+<p>The summary statistics show that the average BAC in the dataset is approximately 0.139, while the median BAC is 0.136. Both values are well above the legal limit of 0.08. This indicates that many drivers in the dataset were substantially intoxicated at the time of the traffic stop. This pattern is expected because the dataset focuses on drivers suspected of driving under the influence rather than the general driving population. Importantly, there are still many observations near the 0.08 threshold, which allows us to implement the regression discontinuity design.</p>
+</section>
+<section id="distribution-of-bac-near-the-cutoff" class="level3">
+<h3 class="anchored" data-anchor-id="distribution-of-bac-near-the-cutoff">Distribution of BAC near the cutoff</h3>
+<p>We next visualize the distribution of BAC values near the legal threshold of 0.08. This is an important diagnostic step because regression discontinuity designs assume that individuals cannot precisely manipulate the running variable around the cutoff. If drivers could manipulate their BAC measurement to avoid harsher penalties, we might observe unusual bunching just below the threshold.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(dwi <span class="sc">%&gt;%</span> <span class="fu">filter</span>(bac_min <span class="sc">&gt;=</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> bac_min <span class="sc">&lt;=</span> <span class="fl">0.11</span>),</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> bac_min)) <span class="sc">+</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">binwidth =</span> <span class="fl">0.002</span>, <span class="at">fill =</span> <span class="st">"lightblue"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.08</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of BAC around the 0.08 threshold"</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Blood Alcohol Concentration (BAC)"</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Count"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Data_Translation_Challenge_files/figure-html/unnamed-chunk-3-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The histogram shows the distribution of BAC values in a neighborhood around the legal threshold of 0.08. The dashed vertical line indicates the cutoff at which harsher DUI penalties begin. The distribution appears relatively smooth around the threshold, with no obvious spike or drop exactly at 0.08. This is important for the validity of the regression discontinuity design because it suggests that drivers are unlikely to be able to precisely manipulate their BAC measurements to fall just below the legal limit. If drivers could manipulate the running variable, we would expect to see bunching just below the cutoff and fewer observations just above it. Since the distribution appears continuous, the assumption of no precise manipulation is plausible.</p>
+</section>
+</section>
+<section id="testing-the-rdd-assumption-density-test" class="level2">
+<h2 class="anchored" data-anchor-id="testing-the-rdd-assumption-density-test">Testing the RDD Assumption: Density Test</h2>
+<p>While the histogram suggests that the BAC distribution is smooth around the 0.08 threshold, visual inspection alone is not sufficient to verify the assumption of no manipulation. Therefore, we conduct a formal density test using the `rddensity` package.</p>
+<p>This test evaluates whether the density of the running variable changes discontinuously at the cutoff. The null hypothesis is that the density of BAC is continuous at 0.08.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>density_test <span class="ot">&lt;-</span> <span class="fu">rddensity</span>(<span class="at">X =</span> dwi<span class="sc">$</span>bac_min, <span class="at">c =</span> <span class="fl">0.08</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(density_test)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Manipulation testing using local polynomial density estimation.
+
+Number of obs =       214558
+Model =               unrestricted
+Kernel =              triangular
+BW method =           estimated
+VCE method =          jackknife
+
+c = 0.08              Left of c           Right of c          
+Number of obs         24807               189751              
+Eff. Number of obs    15740               30303               
+Order est. (p)        2                   2                   
+Order bias (q)        3                   3                   
+BW est. (h)           0.023               0.023               
+
+Method                T                   P &gt; |T|             
+Robust                1.2007              0.2298              </code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in summary.CJMrddensity(density_test): There are repeated observations.
+Point estimates and standard errors have been adjusted. Use option
+massPoints=FALSE to suppress this feature.</code></pre>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+P-values of binomial tests (H0: p=0.5).
+
+Window Length / 2          &lt;c     &gt;=c    P&gt;|T|
+0.001                    1947    1075    0.0000
+0.002                    2922    1075    0.0000
+0.003                    3844    3405    0.0000
+0.004                    3844    4500    0.0000
+0.005                    5603    4500    0.0000
+0.006                    6443    5644    0.0000
+0.007                    6443    8049    0.0000
+0.008                    7253    9303    0.0000
+0.009                    8839    9303    0.0006
+0.010                    9611   10618    0.0000</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">rdplotdensity</span>(density_test, <span class="at">X =</span> dwi<span class="sc">$</span>bac_min)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.
+ℹ The deprecated feature was likely used in the lpdensity package.
+  Please report the issue to the authors.</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Data_Translation_Challenge_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>$Estl
+Call: lpdensity
+
+Sample size                                      24807
+Polynomial order for point estimation    (p=)    2
+Order of derivative estimated            (v=)    1
+Polynomial order for confidence interval (q=)    3
+Kernel function                                  triangular
+Scaling factor                                   0.115619625554049
+Bandwidth method                                 user provided
+
+Use summary(...) to show estimates.
+
+$Estr
+Call: lpdensity
+
+Sample size                                      189751
+Polynomial order for point estimation    (p=)    2
+Order of derivative estimated            (v=)    1
+Polynomial order for confidence interval (q=)    3
+Kernel function                                  triangular
+Scaling factor                                   0.884385035212088
+Bandwidth method                                 user provided
+
+Use summary(...) to show estimates.
+
+$Estplot</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Data_Translation_Challenge_files/figure-html/unnamed-chunk-5-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>The density test evaluates whether there is a discontinuity in the distribution of BAC at the 0.08 cutoff. If drivers were able to manipulate their BAC readings to avoid harsher penalties, we would expect to see a sharp change in the density at the threshold.</p>
+<p>The test produces a robust p-value of 0.2298. Since this value is greater than 0.05, we fail to reject the null hypothesis that the density of BAC is continuous at the cutoff. This result suggests that there is no evidence of manipulation of the running variable around the threshold. Therefore, the key RDD assumption of no precise sorting appears to hold in this dataset.</p>
+</section>
+<section id="local-rdd-sample" class="level2">
+<h2 class="anchored" data-anchor-id="local-rdd-sample">Local RDD Sample</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>dwi_local <span class="ot">&lt;-</span> dwi <span class="sc">%&gt;%</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(bac_min <span class="sc">&gt;=</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> bac_min <span class="sc">&lt;=</span> <span class="fl">0.11</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To implement the regression discontinuity design, we restrict the dataset to observations close to the 0.08 BAC cutoff. RDD estimates the causal effect using observations in a neighborhood around the threshold, where drivers just above and just below the cutoff are expected to be very similar except for the harsher punishment they receive.</p>
+<p>We therefore limit the sample to drivers with BAC values between 0.05 and 0.11. This bandwidth focuses the analysis on individuals who are relatively close to the threshold while still retaining enough observations to produce precise estimates. Restricting the sample in this way reduces bias from observations far from the cutoff, where the relationship between BAC and recidivism may follow a different trend.</p>
+</section>
+<section id="main-regression-discontinuity-model" class="level2">
+<h2 class="anchored" data-anchor-id="main-regression-discontinuity-model">Main Regression Discontinuity Model</h2>
+<p>To estimate the causal effect of harsher DUI penalties on future recidivism, we implement a local linear regression discontinuity model. The treatment indicator (<code>DUI</code>) equals 1 for drivers with BAC values at or above the legal threshold of 0.08 and 0 otherwise.</p>
+<p>The running variable is the BAC level centered at the cutoff (<code>running = bac_min - 0.08</code>). Centering the running variable makes the cutoff equal to zero, which simplifies interpretation of the coefficients.</p>
+<p>The model allows the relationship between BAC and recidivism to have different slopes on either side of the cutoff by including an interaction between the treatment indicator and the running variable.</p>
+<p>The estimated model can be written as:</p>
+<p>recidivism_i = β₀ + β₁ DUI_i + β₂ running_i + β₃ (DUI_i × running_i) + ε_i</p>
+<p>In this specification, the coefficient β₁ represents the discontinuous jump in the probability of recidivism at the 0.08 BAC cutoff. This coefficient captures the causal effect of harsher DUI penalties for drivers whose BAC values are close to the threshold.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a>rd_main <span class="ot">&lt;-</span> <span class="fu">feols</span>(</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  recidivism <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dwi_local,</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov =</span> <span class="st">"hetero"</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(rd_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>OLS estimation, Dep. Var.: recidivism
+Observations: 59,023
+Standard-errors: Heteroskedasticity-robust 
+             Estimate Std. Error  t value  Pr(&gt;|t|)    
+(Intercept)  0.110399   0.003953 27.92760 &lt; 2.2e-16 ***
+DUI         -0.016202   0.005065 -3.19897 0.0013799 ** 
+running     -0.435482   0.288871 -1.50753 0.1316796    
+DUI:running  0.825170   0.336696  2.45079 0.0142573 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.306517   Adj. R2: 5.551e-4</code></pre>
+</div>
+</div>
+<section id="interpretation-of-the-main-rdd-estimate" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation-of-the-main-rdd-estimate">Interpretation of the Main RDD Estimate</h3>
+<p>The coefficient on the treatment indicator (DUI) represents the discontinuous change in the probability of recidivism at the 0.08 BAC cutoff. The estimate is -0.0162, meaning that drivers who are just above the legal threshold are about 1.6 percentage points less likely to commit another drunk-driving offense compared to drivers just below the cutoff.</p>
+<p>This effect is statistically significant at conventional levels (p ≈ 0.0014). Because the regression discontinuity design compares individuals with nearly identical BAC levels on either side of the threshold, this estimate can be interpreted as the causal effect of harsher DUI penalties for drivers close to the cutoff.</p>
+<p>The negative coefficient suggests that harsher punishments for drunk driving reduce the probability of future drunk-driving offenses. In other words, drivers who face the stricter legal consequences associated with BAC levels at or above 0.08 appear to be less likely to reoffend.</p>
+</section>
+</section>
+<section id="rd-model-with-covariates" class="level2">
+<h2 class="anchored" data-anchor-id="rd-model-with-covariates">RD Model with Covariates</h2>
+<p>Our identification in RDD does not require control variables if the design assumptions hold. However, adding covariates can improve precision and provides a useful robustness check the estimated treatment effect should remain similar when we control for observable characteristics and year fixed effects.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>rd_controls <span class="ot">&lt;-</span> <span class="fu">feols</span>(</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  recidivism <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running <span class="sc">+</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a>    male <span class="sc">+</span> white <span class="sc">+</span> aged <span class="sc">+</span> acc <span class="sc">+</span> <span class="fu">factor</span>(year),</span>
+<span id="cb30-4"><a href="#cb30-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> dwi_local,</span>
+<span id="cb30-5"><a href="#cb30-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov =</span> <span class="st">"hetero"</span></span>
+<span id="cb30-6"><a href="#cb30-6" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb30-7"><a href="#cb30-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb30-8"><a href="#cb30-8" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(rd_controls)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>OLS estimation, Dep. Var.: recidivism
+Observations: 59,023
+Standard-errors: Heteroskedasticity-robust 
+                  Estimate Std. Error   t value   Pr(&gt;|t|)    
+(Intercept)       0.101156   0.007511 13.467811  &lt; 2.2e-16 ***
+DUI              -0.016315   0.005056 -3.226835 1.2524e-03 ** 
+running          -0.473232   0.288647 -1.639483 1.0112e-01    
+male              0.035189   0.002830 12.432539  &lt; 2.2e-16 ***
+white             0.016081   0.003426  4.694055 2.6844e-06 ***
+aged             -0.000806   0.000103 -7.807304 5.9381e-15 ***
+acc               0.001445   0.004333  0.333505 7.3875e-01    
+factor(year)2000  0.006788   0.006338  1.071051 2.8415e-01    
+factor(year)2001  0.004517   0.006064  0.744863 4.5636e-01    
+factor(year)2002 -0.001504   0.005695 -0.264077 7.9172e-01    
+factor(year)2003 -0.003931   0.005542 -0.709282 4.7815e-01    
+factor(year)2004 -0.004449   0.005497 -0.809456 4.1826e-01    
+factor(year)2005 -0.006685   0.005605 -1.192820 2.3294e-01    
+factor(year)2006 -0.006314   0.005593 -1.128849 2.5897e-01    
+factor(year)2007 -0.022455   0.005376 -4.177195 2.9555e-05 ***
+DUI:running       0.828976   0.336551  2.463153 1.3775e-02 *  
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+RMSE: 0.305894   Adj. R2: 0.004413</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  rd_main, rd_controls,</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">dict =</span> <span class="fu">c</span>(</span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">DUI =</span> <span class="st">"BAC ≥ 0.08 (Harsher penalty)"</span>,</span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">running =</span> <span class="st">"BAC centered at 0.08"</span>,</span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">`</span><span class="at">DUI:running</span><span class="st">`</span> <span class="ot">=</span> <span class="st">"Harsher penalty × BAC centered"</span>,</span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">male =</span> <span class="st">"Male"</span>,</span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">white =</span> <span class="st">"White"</span>,</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a>    <span class="at">aged =</span> <span class="st">"Age"</span>,</span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">acc =</span> <span class="st">"Accident at stop"</span></span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Table 1:RDD Estimates of Harsher DUI Penalties on Recidivism"</span>,</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">tex =</span> <span class="cn">FALSE</span></span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                          rd_main         rd_controls
+Dependent Var.:                        recidivism          recidivism
+                                                                     
+Constant                       0.1104*** (0.0040)  0.1012*** (0.0075)
+BAC ≥ 0.08 (Harsher penalty) -0.0162** (0.0051)  -0.0163** (0.0051)
+BAC centered at 0.08             -0.4355 (0.2889)    -0.4732 (0.2886)
+Harsher penalty × BAC centered   0.8252* (0.3367)    0.8290* (0.3366)
+Male                                               0.0352*** (0.0028)
+White                                              0.0161*** (0.0034)
+Age                                               -0.0008*** (0.0001)
+Accident at stop                                      0.0014 (0.0043)
+factor(year)2000                                      0.0068 (0.0063)
+factor(year)2001                                      0.0045 (0.0061)
+factor(year)2002                                     -0.0015 (0.0057)
+factor(year)2003                                     -0.0039 (0.0055)
+factor(year)2004                                     -0.0044 (0.0055)
+factor(year)2005                                     -0.0067 (0.0056)
+factor(year)2006                                     -0.0063 (0.0056)
+factor(year)2007                                  -0.0225*** (0.0054)
+______________________________ __________________ ___________________
+S.E. type                      Heteroskedas.-rob. Heteroskedast.-rob.
+Observations                               59,023              59,023
+R2                                        0.00061             0.00467
+Adj. R2                                   0.00056             0.00441
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<section id="comparing-models-with-and-without-covariates" class="level3">
+<h3 class="anchored" data-anchor-id="comparing-models-with-and-without-covariates">Comparing Models With and Without Covariates</h3>
+<p>Table 1 reports the estimated effect of harsher DUI penalties using two specifications. The first model includes only the running variable and its interaction with the treatment indicator, while the second model adds demographic controls, an accident indicator, and year fixed effects.</p>
+<p>The estimated treatment effect is very similar across the two models. In the baseline specification, the coefficient on the treatment indicator is -0.0162, while the estimate in the covariate-adjusted model is -0.0163. Both estimates are statistically significant at the 1% level.</p>
+<p>The similarity of these coefficients suggests that the estimated effect is not driven by observable differences in driver characteristics around the cutoff. This stability is consistent with the core intuition of regression discontinuity designs individuals just above and just below the threshold are already comparable. As a result, adding covariates has little effect on the estimated treatment effect.</p>
+<p>Overall, the results provide evidence that harsher DUI penalties reduce the probability of future drunk-driving offenses for drivers near the 0.08 BAC threshold.</p>
+</section>
+</section>
+<section id="bandwidth-sensitivity-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="bandwidth-sensitivity-analysis">Bandwidth Sensitivity Analysis</h2>
+<p>Regression discontinuity designs rely on observations close to the cutoff. However, the choice of bandwidth can influence the estimated treatment effect. If the bandwidth is too narrow, the estimate may be imprecise due to fewer observations. If it is too wide, the estimate may include observations far from the cutoff where the relationship between BAC and recidivism may differ.</p>
+<p>To evaluate the robustness of our results, we estimate the RDD model using three different bandwidths around the 0.08 cutoff. If the estimated treatment effect remains similar across these specifications, it strengthens confidence that our findings are not driven by the particular bandwidth choice.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb34"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a>bw1 <span class="ot">&lt;-</span> dwi <span class="sc">%&gt;%</span> <span class="fu">filter</span>(bac_min <span class="sc">&gt;=</span> <span class="fl">0.06</span> <span class="sc">&amp;</span> bac_min <span class="sc">&lt;=</span> <span class="fl">0.10</span>)</span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>bw2 <span class="ot">&lt;-</span> dwi <span class="sc">%&gt;%</span> <span class="fu">filter</span>(bac_min <span class="sc">&gt;=</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> bac_min <span class="sc">&lt;=</span> <span class="fl">0.11</span>)</span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>bw3 <span class="ot">&lt;-</span> dwi <span class="sc">%&gt;%</span> <span class="fu">filter</span>(bac_min <span class="sc">&gt;=</span> <span class="fl">0.04</span> <span class="sc">&amp;</span> bac_min <span class="sc">&lt;=</span> <span class="fl">0.12</span>)</span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>m_bw1 <span class="ot">&lt;-</span> <span class="fu">feols</span>(</span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  recidivism <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running,</span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> bw1,</span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov =</span> <span class="st">"hetero"</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>m_bw2 <span class="ot">&lt;-</span> <span class="fu">feols</span>(</span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>  recidivism <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running,</span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> bw2,</span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov =</span> <span class="st">"hetero"</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>m_bw3 <span class="ot">&lt;-</span> <span class="fu">feols</span>(</span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>  recidivism <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running,</span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> bw3,</span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>  <span class="at">vcov =</span> <span class="st">"hetero"</span></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(</span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a>  m_bw1, m_bw2, m_bw3,</span>
+<span id="cb34-25"><a href="#cb34-25" aria-hidden="true" tabindex="-1"></a>  <span class="at">headers =</span> <span class="fu">c</span>(<span class="st">"0.06–0.10"</span>, <span class="st">"0.05–0.11"</span>, <span class="st">"0.04–0.12"</span>),</span>
+<span id="cb34-26"><a href="#cb34-26" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Table 2: Bandwidth Sensitivity of RDD Estimates"</span>,</span>
+<span id="cb34-27"><a href="#cb34-27" aria-hidden="true" tabindex="-1"></a>  <span class="at">tex =</span> <span class="cn">FALSE</span></span>
+<span id="cb34-28"><a href="#cb34-28" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                             m_bw1              m_bw2              m_bw3
+                       0.06–0.10        0.05–0.11        0.04–0.12
+Dependent Var.:         recidivism         recidivism         recidivism
+                                                                        
+Constant        0.1074*** (0.0046) 0.1104*** (0.0040) 0.1095*** (0.0037)
+DUI              -0.0147* (0.0061) -0.0162** (0.0051) -0.0147** (0.0046)
+running          -0.8974. (0.4699)   -0.4355 (0.2889)  -0.5499* (0.2289)
+DUI x running      1.461* (0.5714)   0.8252* (0.3367) 0.9053*** (0.2547)
+_______________ __________________ __________________ __________________
+S.E. type       Heteroskedas.-rob. Heteroskedas.-rob. Heteroskedas.-rob.
+Observations                40,374             59,023             76,488
+R2                         0.00078            0.00061            0.00061
+Adj. R2                    0.00071            0.00056            0.00057
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<section id="interpretation-of-bandwidth-sensitivity" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation-of-bandwidth-sensitivity">Interpretation of Bandwidth Sensitivity</h3>
+<p>Table 2 presents the RDD estimates using three different bandwidths around the 0.08 BAC cutoff. The first specification uses a narrow window (0.06-0.10), the second uses our baseline bandwidth (0.05-0.11), and the third uses a wider window (0.04-0.12).</p>
+<p>Across all three specifications, the estimated treatment effect remains negative and statistically significant. The estimated coefficient on the treatment indicator ranges from -0.0147 to -0.0162, indicating that drivers just above the 0.08 BAC threshold are about 1.5 to 1.6 percentage points less likely to commit another drunk-driving offense compared to drivers just below the cutoff.</p>
+<p>The similarity of the estimates across bandwidth choices suggests that our results are not sensitive to the particular window used around the cutoff. This robustness strengthens confidence that the observed reduction in recidivism reflects the causal impact of harsher DUI penalties rather than being driven by modeling choices.</p>
+</section>
+</section>
+<section id="covariate-balance-at-the-cutoff" class="level2">
+<h2 class="anchored" data-anchor-id="covariate-balance-at-the-cutoff">Covariate Balance at the Cutoff</h2>
+<p>A key RDD assumption is that individuals just below and just above the cutoff are comparable in all characteristics except for receiving the harsher DUI penalty.<br>
+To support this, we test whether observable covariates (sex, race, age, and accident indicator) show any discontinuous “jump” at BAC = 0.08. If these covariates are smooth through the cutoff, it strengthens the credibility of the design.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb36"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Covariate balance tests: do covariates jump at the cutoff?</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>balance_male  <span class="ot">&lt;-</span> <span class="fu">feols</span>(male  <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running, <span class="at">data =</span> dwi_local, <span class="at">vcov =</span> <span class="st">"hetero"</span>)</span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>balance_white <span class="ot">&lt;-</span> <span class="fu">feols</span>(white <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running, <span class="at">data =</span> dwi_local, <span class="at">vcov =</span> <span class="st">"hetero"</span>)</span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>balance_age   <span class="ot">&lt;-</span> <span class="fu">feols</span>(aged  <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running, <span class="at">data =</span> dwi_local, <span class="at">vcov =</span> <span class="st">"hetero"</span>)</span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>balance_acc   <span class="ot">&lt;-</span> <span class="fu">feols</span>(acc   <span class="sc">~</span> DUI <span class="sc">+</span> running <span class="sc">+</span> DUI<span class="sc">:</span>running, <span class="at">data =</span> dwi_local, <span class="at">vcov =</span> <span class="st">"hetero"</span>)</span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a><span class="fu">etable</span>(</span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  balance_male, balance_white, balance_age, balance_acc,</span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">headers =</span> <span class="fu">c</span>(<span class="st">"Male"</span>, <span class="st">"White"</span>, <span class="st">"Age"</span>, <span class="st">"Accident at Stop"</span>),</span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">dict =</span> <span class="fu">c</span>(</span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">DUI =</span> <span class="st">"BAC ≥ 0.08 (Harsher penalty)"</span>,</span>
+<span id="cb36-12"><a href="#cb36-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">running =</span> <span class="st">"BAC centered at 0.08"</span>,</span>
+<span id="cb36-13"><a href="#cb36-13" aria-hidden="true" tabindex="-1"></a>    <span class="st">"DUI:running"</span> <span class="ot">=</span> <span class="st">"Harsher penalty × BAC centered"</span></span>
+<span id="cb36-14"><a href="#cb36-14" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb36-15"><a href="#cb36-15" aria-hidden="true" tabindex="-1"></a>  <span class="at">title =</span> <span class="st">"Covariate Balance Tests at the 0.08 Cutoff"</span>,</span>
+<span id="cb36-16"><a href="#cb36-16" aria-hidden="true" tabindex="-1"></a>  <span class="at">tex =</span> <span class="cn">FALSE</span></span>
+<span id="cb36-17"><a href="#cb36-17" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>                                     balance_male      balance_white
+                                             Male              White
+Dependent Var.:                              male              white
+                                                                    
+Constant                       0.7853*** (0.0051) 0.8497*** (0.0045)
+BAC ≥ 0.08 (Harsher penalty)    0.0005 (0.0067)    0.0010 (0.0059)
+BAC centered at 0.08             -0.1426 (0.3706)    0.2817 (0.3279)
+Harsher penalty × BAC centered    0.6936 (0.4380)   -0.1506 (0.3863)
+______________________________ __________________ __________________
+S.E. type                      Heteroskedas.-rob. Heteroskedas.-rob.
+Observations                               59,023             59,023
+R2                                        0.00018            8.51e-5
+Adj. R2                                   0.00013            3.42e-5
+
+                                     balance_age        balance_acc
+                                             Age   Accident at Stop
+Dependent Var.:                             aged                acc
+                                                                   
+Constant                       34.08*** (0.1479) 0.0806*** (0.0036)
+BAC ≥ 0.08 (Harsher penalty)  -0.2321 (0.1923)    0.0031 (0.0047)
+BAC centered at 0.08           -49.78*** (10.85) -1.229*** (0.2764)
+Harsher penalty × BAC centered  50.42*** (12.70)  1.841*** (0.3239)
+______________________________ _________________ __________________
+S.E. type                      Heteroskeda.-rob. Heteroskedas.-rob.
+Observations                              59,023             59,023
+R2                                       0.00132            0.00059
+Adj. R2                                  0.00127            0.00054
+---
+Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
+</div>
+</div>
+<section id="interpretation-of-covariate-balance-tests" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation-of-covariate-balance-tests">Interpretation of Covariate Balance Tests</h3>
+<p>Table 3 reports regression discontinuity tests for observable driver characteristics. Each column estimates whether there is a discontinuity in a covariate at the 0.08 BAC cutoff using the same specification as the main RDD model.</p>
+<p>The coefficients on the treatment indicator (BAC ≥ 0.08) are small and statistically insignificant for all covariates, including gender, race, age, and whether the stop involved an accident. This suggests that these observable characteristics do not change discontinuously at the threshold.</p>
+<p>The absence of significant jumps in these covariates supports the key identifying assumption of the regression discontinuity design: drivers just above and just below the 0.08 BAC cutoff are similar in observable characteristics. Therefore, any discontinuity observed in recidivism at the cutoff is unlikely to be driven by differences in driver demographics or accident involvement.</p>
+</section>
+</section>
+<section id="regression-discontinuity-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="regression-discontinuity-visualization">Regression Discontinuity Visualization</h2>
+<p>To visually illustrate the regression discontinuity design, we plot the average recidivism rate against BAC values around the 0.08 cutoff. Observations are grouped into small BAC bins to make the relationship easier to observe.</p>
+<p>We also overlay the fitted values from the local linear regression model estimated earlier. If harsher DUI penalties reduce recidivism, we expect to observe a downward jump in the probability of recidivism at the 0.08 BAC threshold.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb38"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a>bins <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(recidivism <span class="sc">~</span> <span class="fu">round</span>(bac_min, <span class="dv">3</span>),</span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>                  <span class="at">data =</span> dwi_local, mean)</span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>grid <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">bac_min =</span> <span class="fu">seq</span>(<span class="fu">min</span>(dwi_local<span class="sc">$</span>bac_min),</span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>                <span class="fu">max</span>(dwi_local<span class="sc">$</span>bac_min),</span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="fl">0.001</span>)</span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">$</span>running <span class="ot">&lt;-</span> grid<span class="sc">$</span>bac_min <span class="sc">-</span> <span class="fl">0.08</span></span>
+<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">$</span>DUI <span class="ot">&lt;-</span> <span class="fu">ifelse</span>(grid<span class="sc">$</span>bac_min <span class="sc">&gt;=</span> <span class="fl">0.08</span>, <span class="dv">1</span>, <span class="dv">0</span>)</span>
+<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>grid<span class="sc">$</span>yhat <span class="ot">&lt;-</span> <span class="fu">predict</span>(rd_main, <span class="at">newdata =</span> grid)</span>
+<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(bins, <span class="fu">aes</span>(<span class="at">x =</span> <span class="st">`</span><span class="at">round(bac_min, 3)</span><span class="st">`</span>, <span class="at">y =</span> recidivism)) <span class="sc">+</span></span>
+<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fl">0.08</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">data =</span> grid, <span class="fu">aes</span>(<span class="at">x =</span> bac_min, <span class="at">y =</span> yhat)) <span class="sc">+</span></span>
+<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Figure 3: Regression Discontinuity Plot"</span>,</span>
+<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"BAC (binned)"</span>,</span>
+<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Mean Recidivism"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Data_Translation_Challenge_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<section id="interpretation-of-the-rd-plot" class="level3">
+<h3 class="anchored" data-anchor-id="interpretation-of-the-rd-plot">Interpretation of the RD Plot</h3>
+<p>Figure 3 displays the relationship between BAC and the probability of future drunk-driving recidivism around the legal threshold of 0.08. Each point represents the average recidivism rate within small BAC bins, while the fitted lines show the predicted relationship from the regression discontinuity model on either side of the cutoff.</p>
+<p>The figure shows a visible downward shift in recidivism at the 0.08 BAC threshold. Drivers just above the cutoff appear to have a lower probability of committing another drunk-driving offense compared to drivers just below the threshold. This pattern is consistent with the regression results presented earlier and supports the conclusion that harsher DUI penalties reduce future drunk-driving recidivism.</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>This project examined whether harsher punishments for drunk driving reduce the probability of future drunk-driving offenses. Using a regression discontinuity design based on the legal BAC threshold of 0.08, we compared drivers with BAC levels just below and just above the cutoff. Because these drivers have nearly identical BAC levels but face different legal consequences, the discontinuity at the threshold provides a credible way to estimate the causal effect of harsher penalties.</p>
+<p>Our results consistently show that drivers just above the 0.08 BAC threshold are less likely to commit another drunk-driving offense than those just below the cutoff. The main regression discontinuity estimate indicates that harsher DUI penalties reduce the probability of recidivism by approximately 1.6 percentage points.</p>
+<p>Several supporting analyses strengthen this conclusion. First, the density test shows no evidence that drivers manipulate their BAC measurements to avoid crossing the legal threshold, supporting the validity of the regression discontinuity design. Second, the estimated treatment effect remains stable when demographic controls and year fixed effects are added to the model. Third, the results are robust to different bandwidth choices around the cutoff. Finally, covariate balance tests show no discontinuities in observable driver characteristics at the threshold, suggesting that drivers on either side of the cutoff are comparable.</p>
+<p>Taken together, these findings provide evidence that harsher DUI penalties have a deterrent effect on future drunk-driving behavior. While the estimated reduction in recidivism is modest, it suggests that stricter legal consequences can play a role in discouraging repeat offenses and improving road safety.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
