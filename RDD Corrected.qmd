@@ -1,0 +1,270 @@
+---
+title: "Untitled"
+format: html
+editor: visual
+---
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+
+## Running Code
+
+When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+
+```{r}
+# Packages
+library(tidyverse)
+library(here)
+library(rdrobust)
+library(rddensity)
+library(fixest)
+
+# Cutoff
+c_cut <- 0.08
+
+# Load data
+dir.create(here("data"), showWarnings = FALSE)
+file.copy("~/Documents/New project1/DWI_Data.csv", here("data", "DWI_Data.csv"))
+dwi_raw <- readr::read_csv(here("data", "DWI_Data.csv"))
+```
+
+You can add options to executable code like this
+
+```{r}
+# Construct RD variables
+# Use bac_min as the legally relevant BAC measure
+# Create treatment indicator and centered running variable
+
+dwi <- dwi_raw %>%
+  mutate(
+    bac_min = pmin(bac1, bac2, na.rm = TRUE),
+    treat   = as.integer(bac_min >= c_cut),
+    x       = bac_min - c_cut
+  ) %>%
+  filter(!is.na(bac_min), !is.na(recidivism)) %>%
+  filter(bac_min < 0.15)
+
+# Define common windows
+dwi_plot <- dwi %>%
+  filter(bac_min >= 0.03, bac_min <= 0.13)
+
+dwi_main <- dwi %>%
+  filter(bac_min >= 0.05, bac_min <= 0.11)
+
+dwi_narrow <- dwi %>%
+  filter(bac_min >= 0.06, bac_min <= 0.10)
+
+dwi_wide <- dwi %>%
+  filter(bac_min >= 0.04, bac_min <= 0.12)
+
+```
+
+```{r}
+# Running variable distribution
+# Histogram near the cutoff
+ggplot(dwi_plot, aes(x = bac_min)) +
+  geom_histogram(binwidth = 0.001, color = "white") +
+  geom_vline(xintercept = c_cut) +
+  labs(
+    title = "BAC distribution near 0.08",
+    x = "BAC (bac_min)",
+    y = "Count"
+  )
+```
+
+```{r}
+# Density test at cutoff
+# Formal manipulation test
+dens_08 <- rddensity(X = dwi$bac_min, c = c_cut)
+summary(dens_08)
+rdplotdensity(dens_08, X = dwi$bac_min)
+```
+
+```{r}
+# RD plot
+# Main nonparametric visualization
+rdplot(
+  y = dwi_plot$recidivism,
+  x = dwi_plot$bac_min,
+  c = c_cut,
+  p = 1,
+  kernel = "tri",
+  x.label = "BAC (bac_min)",
+  y.label = "Recidivism",
+  title   = "Recidivism vs BAC (RD at 0.08)"
+)
+
+```
+
+```{r}
+# Main RD estimate
+# Nonparametric local linear RD with triangular kernel
+rd_main <- rdrobust(
+  y = dwi$recidivism,
+  x = dwi$bac_min,
+  c = c_cut,
+  p = 1,
+  kernel = "tri"
+)
+
+# Local-window RD estimate
+# Additional robustness check using plotting window
+rd_plot_window <- rdrobust(
+  y = dwi_plot$recidivism,
+  x = dwi_plot$bac_min,
+  c = c_cut,
+  p = 1,
+  kernel = "tri"
+)
+
+# Bandwidth sensitivity
+# Manual bandwidth checks around the cutoff
+rd_h02 <- rdrobust(
+  y = dwi$recidivism,
+  x = dwi$bac_min,
+  c = c_cut,
+  p = 1,
+  kernel = "tri",
+  h = 0.02
+)
+
+rd_h05 <- rdrobust(
+  y = dwi$recidivism,
+  x = dwi$bac_min,
+  c = c_cut,
+  p = 1,
+  kernel = "tri",
+  h = 0.05
+)
+
+cat("\n--- rdrobust bandwidth sensitivity ---\n")
+cat("\nMain estimate\n")
+print(summary(rd_main))
+
+cat("\nPlot-window estimate (0.03 to 0.13)\n")
+print(summary(rd_plot_window))
+
+cat("\nSmall bandwidth h = 0.02\n")
+print(summary(rd_h02))
+
+cat("\nBig bandwidth h = 0.05\n")
+print(summary(rd_h05))
+```
+
+```{r}
+# Covariate balance checks
+# Test whether predetermined covariates jump at cutoff
+covars <- c("male", "white", "aged", "acc")
+
+balance_tests <- purrr::map_dfr(covars, function(v) {
+  yv <- dwi[[v]]
+  keep <- !is.na(yv) & !is.na(dwi$bac_min)
+  
+  out <- rdrobust(
+    y = yv[keep],
+    x = dwi$bac_min[keep],
+    c = c_cut,
+    p = 1,
+    kernel = "tri"
+  )
+  
+  tibble(
+    var = v,
+    tau = out$Estimate[1],
+    se  = out$se[1],
+    p   = out$pv[1]
+  )
+})
+
+balance_tests
+
+
+```
+
+```{r}
+# Parametric local linear checks
+# Supporting regressions using feols
+# Coefficient on treat is the discontinuity at the cutoff
+
+check_main <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_main,
+  vcov = "hetero"
+)
+
+check_narrow <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_narrow,
+  vcov = "hetero"
+)
+
+check_wide <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_wide,
+  vcov = "hetero"
+)
+
+check_cov <- feols(
+  recidivism ~ treat + x + treat:x + male + white + aged + factor(year),
+  data = dwi_main,
+  vcov = "hetero"
+)
+
+check_quad <- feols(
+  recidivism ~ treat + x + I(x^2) + treat:x + treat:I(x^2),
+  data = dwi_main,
+  vcov = "hetero"
+)
+
+etable(check_main, check_narrow, check_wide, check_cov, check_quad)
+
+```
+
+```{r}
+# Fixed-bandwidth parametric check
+# Linear model within a symmetric bandwidth around cutoff
+h_check <- 0.05
+
+dwi_h <- dwi %>%
+  filter(abs(x) <= h_check)
+
+check_band <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_h,
+  vcov = "hetero"
+)
+
+etable(check_band)
+
+```
+
+```{r}
+# Binned RD visual with fitted local linear line
+# Visual representation of the main parametric check
+
+bins <- dwi_main %>%
+  mutate(bac_bin = round(bac_min, 3)) %>%
+  group_by(bac_bin) %>%
+  summarise(recidivism = mean(recidivism), .groups = "drop")
+
+grid <- tibble(
+  bac_min = seq(0.05, 0.11, by = 0.001)
+) %>%
+  mutate(
+    x = bac_min - c_cut,
+    treat = ifelse(bac_min >= c_cut, 1, 0)
+  )
+
+grid$yhat <- predict(check_main, newdata = grid)
+
+ggplot(bins, aes(x = bac_bin, y = recidivism)) +
+  geom_point() +
+  geom_vline(xintercept = c_cut, linetype = "dashed") +
+  geom_line(data = grid, aes(x = bac_min, y = yhat)) +
+  labs(
+    x = "BAC (binned)",
+    y = "Mean recidivism",
+    title = "RD plot with fitted local linear line"
+  )
+```
