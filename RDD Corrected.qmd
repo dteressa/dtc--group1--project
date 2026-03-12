@@ -85,11 +85,12 @@ rdplotdensity(dens_08, X = dwi$bac_min)
 # RD plot
 # Main nonparametric visualization
 rdplot(
-  y = dwi_plot$recidivism,
-  x = dwi_plot$bac_min,
-  c = c_cut,
-  p = 1,
-  kernel = "tri",
+  y       = dwi_plot$recidivism,
+  x       = dwi_plot$bac_min,
+  c       = c_cut,
+  nbins   = c(20, 20),         # ADDED: control bins for cleaner visualization
+  p       = 1,
+  kernel  = "tri",
   x.label = "BAC (bac_min)",
   y.label = "Recidivism",
   title   = "Recidivism vs BAC (RD at 0.08)"
@@ -101,55 +102,105 @@ rdplot(
 # Main RD estimate
 # Nonparametric local linear RD with triangular kernel
 rd_main <- rdrobust(
-  y = dwi$recidivism,
-  x = dwi$bac_min,
-  c = c_cut,
-  p = 1,
-  kernel = "tri"
+  y           = dwi$recidivism,
+  x           = dwi$bac_min,
+  c           = c_cut,
+  p           = 1,
+  kernel      = "tri",
+  masspoints = "adjust"           # ADDED: corrects SEs for repeated BAC values
 )
 
 # Local-window RD estimate
 # Additional robustness check using plotting window
 rd_plot_window <- rdrobust(
-  y = dwi_plot$recidivism,
-  x = dwi_plot$bac_min,
-  c = c_cut,
-  p = 1,
-  kernel = "tri"
+  y          = dwi_plot$recidivism,
+  x          = dwi_plot$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  masspoints = "adjust"             # ADDED: corrects SEs for repeated BAC values
 )
 
 # Bandwidth sensitivity
 # Manual bandwidth checks around the cutoff
 rd_h02 <- rdrobust(
-  y = dwi$recidivism,
-  x = dwi$bac_min,
-  c = c_cut,
-  p = 1,
-  kernel = "tri",
-  h = 0.02
+  y          = dwi$recidivism,
+  x          = dwi$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  h          = 0.02,
+  masspoints = "adjust"            # ADDED: corrects SEs for repeated BAC values
 )
 
 rd_h05 <- rdrobust(
-  y = dwi$recidivism,
-  x = dwi$bac_min,
-  c = c_cut,
-  p = 1,
-  kernel = "tri",
-  h = 0.05
+  y          = dwi$recidivism,
+  x          = dwi$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  h          = 0.05,
+  masspoints = "adjust"            # ADDED: corrects SEs for repeated BAC values
 )
 
 cat("\n--- rdrobust bandwidth sensitivity ---\n")
-cat("\nMain estimate\n")
-print(summary(rd_main))
+cat("\nMain estimate\n");          print(summary(rd_main))
+cat("\nPlot-window estimate (0.03 to 0.13)\n"); print(summary(rd_plot_window))
+cat("\nSmall bandwidth h = 0.02\n"); print(summary(rd_h02))
+cat("\nBig bandwidth h = 0.05\n");   print(summary(rd_h05))
 
-cat("\nPlot-window estimate (0.03 to 0.13)\n")
-print(summary(rd_plot_window))
+# Covariate balance checks
+# Test whether predetermined covariates jump at cutoff
+# FIXED: se and p now use robust inference ([3]) instead of conventional ([1])
+covars <- c("male", "white", "aged", "acc")
 
-cat("\nSmall bandwidth h = 0.02\n")
-print(summary(rd_h02))
+balance_tests <- purrr::map_dfr(covars, function(v) {
+  yv   <- dwi[[v]]
+  keep <- !is.na(yv) & !is.na(dwi$bac_min)
+  
+  out <- rdrobust(
+    y          = yv[keep],
+    x          = dwi$bac_min[keep],
+    c          = c_cut,
+    p          = 1,
+    kernel     = "tri",
+   masspoints = "adjust"           # ADDED: corrects SEs for repeated BAC values
+  )
+  
+  tibble(
+    var = v,
+    tau = out$Estimate[1],      # point estimate (unchanged)
+    se  = out$se[3],            # FIXED: robust SE (was out$se[1] — conventional)
+    p   = out$pv[3]             # FIXED: robust p-value (was out$pv[1] — conventional)
+  )
+})
 
-cat("\nBig bandwidth h = 0.05\n")
-print(summary(rd_h05))
+balance_tests
+
+# Donut hole check
+# ADDED: drops observations within 0.001 of cutoff to address bunching
+# shown in density test (all binomial tests p = 0.000)
+dwi_donut <- dwi %>% filter(abs(x) > 0.001)
+
+rd_donut <- rdrobust(
+  y          = dwi_donut$recidivism,
+  x          = dwi_donut$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  masspoints = "adjust"
+)
+
+cat("\nDonut hole estimate (dropping |x| <= 0.001)\n")
+print(summary(rd_donut))
+
+# Compare main vs donut side by side
+cat("\n--- Main vs Donut comparison ---\n")
+cat("Main  | Estimate:", round(rd_main$Estimate[1], 4),
+    "| p:", round(rd_main$pv[3], 3), "\n")
+cat("Donut | Estimate:", round(rd_donut$Estimate[1], 4),
+    "| p:", round(rd_donut$pv[3], 3), "\n")
+
 ```
 
 ```{r}
