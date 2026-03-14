@@ -1,0 +1,383 @@
+---
+title: "Do Harsher Drunk-Driving Punishments Reduce Recidivism? Evidence from a Regression Discontinuity Design"
+author: "Your Group Names"
+format: html
+editor: visual
+---
+
+## Research Question
+
+This project studies whether harsher punishments for drunk driving reduce the likelihood that drivers commit another drunk-driving offense in the future. In the United States, drivers whose blood alcohol concentration (BAC) is 0.08 or higher face significantly harsher legal penalties than drivers with BAC levels below this threshold.
+
+We use this legal cutoff to examine whether crossing the 0.08 BAC threshold affects the probability of future drunk-driving recidivism. The key question is whether drivers who fall just above the legal limit and therefore face harsher punishments are less likely to offend again compared to drivers just below the threshold.
+
+## Empirical Strategy
+
+To estimate the causal effect of harsher drunk-driving penalties on recidivism, we use a Regression Discontinuity Design (RDD) based on the legal BAC cutoff of 0.08. Drivers with BAC levels just above this threshold face substantially harsher penalties than those just below it. Because drivers very close to the cutoff are expected to be otherwise similar, comparing outcomes around this threshold allows us to estimate the causal effect of harsher punishment on future drunk-driving offenses.
+
+The running variable is the driver’s BAC level measured as `bac_min`, the minimum of the two BAC tests administered during the traffic stop. Since each driver receives two BAC tests, we use the minimum BAC measurement (bac_min), which is the value used in legal prosecution. The running variable is centered at the cutoff so that 0 corresponds to BAC = 0.08, and a treatment indicator identifies drivers above the threshold.
+
+Our main estimates use the local linear RDD estimator implemented in rdrobust with a triangular kernel and data-driven bandwidth selection. We first test for manipulation of the running variable using rddensity. Because the BAC distribution shows heaping at exactly 0.08, we also estimate a donut-hole specification that excludes observations extremely close to the cutoff.
+
+The key identifying assumption of the RDD is that drivers cannot precisely manipulate their BAC levels around the legal threshold. Under this assumption, drivers just above and just below the cutoff are comparable, allowing the discontinuity in punishment to identify the causal effect of harsher penalties on recidivism.
+
+## Data
+
+The data come from traffic stops in Washington State used in Hansen (2015). The dataset contains information on drivers’ blood alcohol content (BAC), demographic characteristics, and whether the driver later committed another drunk-driving offense (recidivism).
+
+Each driver receives two BAC tests (`bac1` and `bac2`). The dataset also includes demographic variables such as gender (`male`), race (`white`), age (`aged`), and an indicator for whether an accident occurred at the stop (`acc`). These variables allow us to construct the running variable for the regression discontinuity design and examine whether harsher penalties affect the probability of future drunk-driving offenses.
+
+## Loading Packages and Data
+
+We begin by loading the R packages required for the analysis. The `tidyverse` package is used for data manipulation and visualization. The `here` package helps manage file paths so that the project remains reproducible across different computers. The `rdrobust` and `rddensity` packages provide tools specifically designed for regression discontinuity analysis, and `fixest` is used to estimate regression models.
+
+Next, we define the BAC cutoff at 0.08, which corresponds to the legal threshold for harsher drunk-driving penalties and forms the basis of our regression discontinuity design.
+
+Finally, we load the dataset containing the traffic stop observations using `read_csv()` and store it as `dwi_raw`, which will be used for the subsequent data preparation and analysis.
+
+```{r}
+# Packages
+library(tidyverse)
+library(here)
+library(rdrobust)
+library(rddensity)
+library(fixest)
+
+# Cutoff
+c_cut <- 0.08
+
+# Load data
+dwi_raw <- readr::read_csv("DWI_Data.csv")
+```
+
+These variables provide the information needed to construct the running variable for the regression discontinuity design and to evaluate whether crossing the BAC threshold affects future drunk-driving behavior.
+
+## Constructing the RDD Variables
+
+```{r}
+# Construct RD variables
+# Use bac_min as the legally relevant BAC measure
+# Create treatment indicator and centered running variable
+
+dwi <- dwi_raw %>%
+  mutate(
+    bac_min = pmin(bac1, bac2, na.rm = TRUE),
+    treat   = as.integer(bac_min >= c_cut),
+    x       = bac_min - c_cut
+  ) %>%
+  filter(!is.na(bac_min), !is.na(recidivism)) %>%
+  filter(bac_min < 0.15)
+
+# Define common windows
+dwi_plot <- dwi %>%
+  filter(bac_min >= 0.03, bac_min <= 0.13)
+
+dwi_main <- dwi %>%
+  filter(bac_min >= 0.05, bac_min <= 0.11)
+
+dwi_narrow <- dwi %>%
+  filter(bac_min >= 0.06, bac_min <= 0.10)
+
+dwi_wide <- dwi %>%
+  filter(bac_min >= 0.04, bac_min <= 0.12)
+
+```
+
+To implement the regression discontinuity design, we first construct the key variables used in the analysis. Because each driver receives two BAC tests, we define the running variable using the minimum of the two BAC measurements (`bac_min`). This is the legally relevant BAC measure used in prosecution and therefore determines whether a driver faces the harsher penalty at the 0.08 cutoff.
+
+We then create a treatment indicator (`treat`) that equals 1 when a driver’s BAC is greater than or equal to the legal cutoff of 0.08, and 0 otherwise. The running variable is centered at the cutoff (`x = bac_min − 0.08`) so that zero corresponds to the threshold.
+
+Observations with missing BAC or recidivism values are removed, and the sample is restricted to BAC levels below 0.15 to avoid interference from the second legal penalty threshold.
+
+We then define several bandwidth windows around the cutoff that will be used for visualization and robustness checks. A wider window (`0.03–0.13`) is used for plotting the BAC distribution, while narrower windows (`0.05–0.11`, `0.06–0.10`, and `0.04–0.12`) are used to test the sensitivity of the results to different ranges of data around the threshold. These alternative windows allow us to verify that our results are not driven by a particular sample choice.
+
+## Running Variable Distribution
+
+```{r}
+# Running variable distribution
+# Histogram near the cutoff
+ggplot(dwi_plot, aes(x = bac_min)) +
+  geom_histogram(binwidth = 0.001, color = "white") +
+  geom_vline(xintercept = c_cut) +
+  labs(
+    title = "BAC distribution near 0.08",
+    x = "BAC (bac_min)",
+    y = "Count"
+  )
+```
+
+Before estimating the regression discontinuity model, we examine the distribution of the running variable near the cutoff. Figure X plots a histogram of the BAC measure (`bac_min`) around the legal threshold of 0.08.
+
+This step helps visually assess whether there is unusual clustering of observations near the cutoff, which could indicate manipulation or measurement issues. The vertical line marks the legal BAC threshold that determines the treatment assignment in the RDD.
+
+## Manipulation Test
+
+```{r}
+# Density test at cutoff
+# Formal manipulation test
+dens_08 <- rddensity(X = dwi$bac_min, c = c_cut)
+summary(dens_08)
+rdplotdensity(dens_08, X = dwi$bac_min)
+```
+
+A key assumption of the regression discontinuity design is that individuals cannot precisely manipulate the running variable around the cutoff. To test this, we conduct the McCrary density test using the `rddensity` package. This test examines whether there is a discontinuity in the density of the running variable (`bac_min`) at the 0.08 BAC cutoff.
+
+The test does not detect a statistically significant jump in density at the cutoff (p ≈ 0.23), suggesting that drivers are not systematically manipulating their BAC values to fall just below the legal threshold. However, the histogram and density plot reveal heaping at exactly 0.08, meaning that many BAC values cluster at the cutoff. This likely reflects rounding or measurement practices rather than strategic manipulation.
+
+While this does not invalidate the RDD, the presence of heaping motivates an additional donut-hole robustness check later in the analysis, where observations extremely close to the cutoff are excluded.
+
+### RD Plot
+
+```{r}
+# RD plot
+# Main nonparametric visualization
+rdplot(
+  y       = dwi_plot$recidivism,
+  x       = dwi_plot$bac_min,
+  c       = c_cut,
+  nbins   = c(20, 20),         # ADDED: control bins for cleaner visualization
+  p       = 1,
+  kernel  = "tri",
+  x.label = "BAC (bac_min)",
+  y.label = "Recidivism",
+  title   = "Recidivism vs BAC (RD at 0.08)"
+)
+
+```
+
+We next visualize the relationship between BAC and recidivism using a nonparametric RD plot generated with `rdplot`. The plot groups observations into bins on either side of the 0.08 BAC cutoff and fits local linear trends using a triangular kernel.
+
+The vertical line marks the legal threshold where harsher punishments begin. Visually, there appears to be a downward jump in recidivism at the cutoff, suggesting that drivers just above the legal limit may be less likely to reoffend than those just below it. While this figure provides suggestive evidence of an effect, formal estimation is required to quantify the size and statistical significance of the discontinuity.
+
+## Main RD estimate
+
+```{r}
+# Main RD estimate
+# Nonparametric local linear RD with triangular kernel
+rd_main <- rdrobust(
+  y           = dwi$recidivism,
+  x           = dwi$bac_min,
+  c           = c_cut,
+  p           = 1,
+  kernel      = "tri",
+  masspoints = "adjust"           # ADDED: corrects SEs for repeated BAC values
+)
+
+# Local-window RD estimate
+# Additional robustness check using plotting window
+rd_plot_window <- rdrobust(
+  y          = dwi_plot$recidivism,
+  x          = dwi_plot$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  masspoints = "adjust"             # ADDED: corrects SEs for repeated BAC values
+)
+
+# Bandwidth sensitivity
+# Manual bandwidth checks around the cutoff
+rd_h02 <- rdrobust(
+  y          = dwi$recidivism,
+  x          = dwi$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  h          = 0.02,
+  masspoints = "adjust"            # ADDED: corrects SEs for repeated BAC values
+)
+
+rd_h05 <- rdrobust(
+  y          = dwi$recidivism,
+  x          = dwi$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  h          = 0.05,
+  masspoints = "adjust"            # ADDED: corrects SEs for repeated BAC values
+)
+
+cat("\n--- rdrobust bandwidth sensitivity ---\n")
+cat("\nMain estimate\n");          print(summary(rd_main))
+cat("\nPlot-window estimate (0.03 to 0.13)\n"); print(summary(rd_plot_window))
+cat("\nSmall bandwidth h = 0.02\n"); print(summary(rd_h02))
+cat("\nBig bandwidth h = 0.05\n");   print(summary(rd_h05))
+
+# Covariate balance checks
+# Test whether predetermined covariates jump at cutoff
+# FIXED: se and p now use robust inference ([3]) instead of conventional ([1])
+covars <- c("male", "white", "aged", "acc")
+
+balance_tests <- purrr::map_dfr(covars, function(v) {
+  yv   <- dwi[[v]]
+  keep <- !is.na(yv) & !is.na(dwi$bac_min)
+  
+  out <- rdrobust(
+    y          = yv[keep],
+    x          = dwi$bac_min[keep],
+    c          = c_cut,
+    p          = 1,
+    kernel     = "tri",
+   masspoints = "adjust"           # ADDED: corrects SEs for repeated BAC values
+  )
+  
+  tibble(
+    var = v,
+    tau = out$Estimate[1],      # point estimate (unchanged)
+    se  = out$se[3],            # FIXED: robust SE (was out$se[1] — conventional)
+    p   = out$pv[3]             # FIXED: robust p-value (was out$pv[1] — conventional)
+  )
+})
+
+balance_tests
+
+# Donut hole check
+# ADDED: drops observations within 0.001 of cutoff to address bunching
+# shown in density test (all binomial tests p = 0.000)
+dwi_donut <- dwi %>% filter(abs(x) > 0.001)
+
+rd_donut <- rdrobust(
+  y          = dwi_donut$recidivism,
+  x          = dwi_donut$bac_min,
+  c          = c_cut,
+  p          = 1,
+  kernel     = "tri",
+  masspoints = "adjust"
+)
+
+cat("\nDonut hole estimate (dropping |x| <= 0.001)\n")
+print(summary(rd_donut))
+
+# Compare main vs donut side by side
+cat("\n--- Main vs Donut comparison ---\n")
+cat("Main  | Estimate:", round(rd_main$Estimate[1], 4),
+    "| p:", round(rd_main$pv[3], 3), "\n")
+cat("Donut | Estimate:", round(rd_donut$Estimate[1], 4),
+    "| p:", round(rd_donut$pv[3], 3), "\n")
+```
+
+We estimate the causal effect of crossing the BAC threshold using the local linear regression discontinuity estimator implemented in `rdrobust`. The model uses a triangular kernel and a first-order polynomial, which places more weight on observations closer to the cutoff. The estimator automatically selects the optimal bandwidth around the 0.08 BAC threshold. We also apply the `masspoints = "adjust"` option to correct the standard errors for repeated BAC values.
+
+Bandwidth Sensitivity Checks
+
+To verify that the results are not sensitive to the choice of bandwidth, we estimate the model using alternative bandwidths around the cutoff. In addition to the data-driven bandwidth selected by `rdrobust`, we estimate models using manual bandwidths of 0.02 and 0.05. We also run the estimation within the plotting window used in the visualization. These checks allow us to confirm that the estimated effect is stable across different bandwidth choices.
+
+Covariate balance check
+
+A key validity condition for the regression discontinuity design is that predetermined characteristics should not change discontinuously at the cutoff. To test this, we estimate RD models for several covariates, including gender, race, age, and accident involvement. The results show no statistically significant jumps at the cutoff for most variables, suggesting that individuals just above and just below the threshold are comparable. Age shows a marginally significant difference, but the magnitude is small and does not meaningfully threaten the identification strategy.
+
+Donut Hole Robustness
+
+Because the distribution of BAC values shows clustering exactly at 0.08, we perform a donut-hole robustness check. This approach excludes observations extremely close to the cutoff (within ±0.001) that may be affected by rounding or measurement practices. Re-estimating the RD model after removing these observations allows us to verify that the estimated treatment effect is not driven by heaping at the threshold.
+
+### Parametric Robustness Checks
+
+```{r}
+# Parametric local linear checks
+# Supporting regressions using feols
+# Coefficient on treat is the discontinuity at the cutoff
+
+check_main <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_main,
+  vcov = "hetero"
+)
+
+check_narrow <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_narrow,
+  vcov = "hetero"
+)
+
+check_wide <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_wide,
+  vcov = "hetero"
+)
+
+check_cov <- feols(
+  recidivism ~ treat + x + treat:x + male + white + aged + factor(year),
+  data = dwi_main,
+  vcov = "hetero"
+)
+
+check_quad <- feols(
+  recidivism ~ treat + x + I(x^2) + treat:x + treat:I(x^2),
+  data = dwi_main,
+  vcov = "hetero"
+)
+
+etable(check_main, check_narrow, check_wide, check_cov, check_quad)
+```
+
+Table X reports the results from the parametric local linear regressions. Across the main, narrow, and wide bandwidth specifications, the coefficient on `treat` is consistently negative, ranging from approximately −0.014 to −0.016. This indicates that drivers whose BAC crosses the 0.08 legal threshold are about 1.4–1.6 percentage points less likely to commit another drunk-driving offense compared to drivers just below the cutoff.
+
+The estimates remain similar when demographic controls and year fixed effects are included. The results are statistically significant in most specifications, providing consistent evidence that harsher penalties reduce recidivism.
+
+The quadratic specification produces a smaller and statistically insignificant estimate, but the overall pattern across specifications remains negative. Taken together, these results support the findings from the nonparametric RDD estimates and suggest that the estimated effect is robust to alternative model specifications.
+
+### Fixed-Bandwidth Parametric Check
+
+```{r}
+# Fixed-bandwidth parametric check
+# Linear model within a symmetric bandwidth around cutoff
+h_check <- 0.05
+
+dwi_h <- dwi %>%
+  filter(abs(x) <= h_check)
+
+check_band <- feols(
+  recidivism ~ treat + x + treat:x,
+  data = dwi_h,
+  vcov = "hetero"
+)
+
+etable(check_band)
+```
+
+Table X reports the results from the fixed-bandwidth parametric regression, which restricts the sample to observations within ±0.05 BAC units of the 0.08 cutoff. The coefficient on the treatment indicator (`treat`) is −0.0187 and statistically significant at the 1% level.
+
+This estimate implies that drivers whose BAC crosses the legal threshold are about 1.9 percentage points less likely to commit another drunk-driving offense compared to drivers just below the cutoff. The result is consistent with the earlier nonparametric and parametric estimates, providing additional evidence that harsher penalties reduce recidivism.
+
+## Binned RD Visualization
+
+```{r}
+# Binned RD visual with fitted local linear line
+# Visual representation of the main parametric check
+
+bins <- dwi_main %>%
+  mutate(bac_bin = round(bac_min, 3)) %>%
+  group_by(bac_bin) %>%
+  summarise(recidivism = mean(recidivism), .groups = "drop")
+
+grid <- tibble(
+  bac_min = seq(0.05, 0.11, by = 0.001)
+) %>%
+  mutate(
+    x = bac_min - c_cut,
+    treat = ifelse(bac_min >= c_cut, 1, 0)
+  )
+
+grid$yhat <- predict(check_main, newdata = grid)
+
+ggplot(bins, aes(x = bac_bin, y = recidivism)) +
+  geom_point() +
+  geom_vline(xintercept = c_cut, linetype = "dashed") +
+  geom_line(data = grid, aes(x = bac_min, y = yhat)) +
+  labs(
+    x = "BAC (binned)",
+    y = "Mean recidivism",
+    title = "RD plot with fitted local linear line"
+  )
+```
+
+Figure X plots mean recidivism by BAC bin and overlays the fitted local linear regression. The graph shows a visible downward jump at the 0.08 cutoff, consistent with the estimated negative effect of harsher penalties on recidivism.
+
+## Conclusion
+
+This analysis used a regression discontinuity design (RDD) to estimate the causal effect of harsher drunk-driving penalties at the 0.08 BAC legal threshold on future recidivism. Drivers just above and just below the cutoff are assumed to be comparable, allowing the discontinuity in punishment to identify the treatment effect.
+
+We first verified the validity of the design. The density test showed no significant manipulation around the cutoff (p ≈ 0.23), although there is visible heaping at exactly 0.08, likely due to rounding or measurement practices. Covariate balance tests show no meaningful discontinuities in demographic characteristics, suggesting that individuals on either side of the threshold are similar.
+
+The baseline nonparametric RDD estimate is negative but not statistically significant. However, when we account for heaping by applying a donut-hole specification, the estimated effect becomes larger and statistically significant. Across additional parametric robustness checks, bandwidth variations, and fixed-window regressions, the estimated impact remains consistently negative.
+
+Overall, the results suggest that crossing the 0.08 BAC threshold reduces the probability of future drunk-driving recidivism by roughly 1.5–2 percentage points. The consistency of the effect across multiple specifications supports the conclusion that harsher legal penalties have a deterrent effect on repeat drunk-driving behavior.
