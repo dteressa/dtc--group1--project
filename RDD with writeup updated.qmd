@@ -94,7 +94,6 @@ c_cut <- 0.08
 
 load(here("DWI_Data.rdata"))
 dwi_raw <- dwi
-ls()
 ```
 
 ## Constructing the RDD Variables
@@ -155,7 +154,7 @@ rdplotdensity(dens_08, X = dwi$bac_min)
 
 The test does not detect a statistically significant jump in density at the cutoff (p ≈ 0.23), which supports the assumption that systematic manipulation is not occurring. However, the histogram and density plot reveal heaping at exactly 0.08, meaning that many BAC values cluster at the cutoff. This likely reflects rounding or measurement practices in how BAC tests are recorded, rather than strategic manipulation by drivers or officers. While this does not invalidate the RDD, the presence of heaping motivates an additional donut-hole robustness check later in the analysis, where observations extremely close to the cutoff are excluded. If the results are similar with and without these observations, we can be confident that the heaping is not driving our findings.
 
-## Co-variate Balance Tests
+## Covariate Balance Tests
 
 ```{r}
 covars <- c("male", "white", "aged", "acc")
