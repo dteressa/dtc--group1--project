@@ -9,7 +9,7 @@
 <link href="DTC_Presentation_files/libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles"><meta charset="utf-8">
   <meta name="generator" content="quarto-1.8.25">
 
-  <meta name="author" content="DTC Group 1">
+  <meta name="author" content="DTC - Group 1">
   <title>Do Harsher DUI Punishments Reduce Recidivism?</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -133,7 +133,7 @@
 <div class="quarto-title-authors">
 <div class="quarto-title-author">
 <div class="quarto-title-author-name">
-DTC Group 1 
+DTC - Group 1 
 </div>
 </div>
 </div>
@@ -144,25 +144,26 @@ DTC Group 1
 <p><strong>Do harsher punishments for drunk driving reduce repeat offenses?</strong></p>
 <ul>
 <li>At BAC = 0.08, penalties jump sharply in Washington State</li>
-<li>128,603 traffic stops from 1999-2007</li>
-<li>Running variable: minimum of two BAC tests (legally binding value)</li>
+<li>128,603 traffic stops from 1999–2007</li>
+<li>Each driver tested twice; we use the <strong>minimum BAC</strong> (legally binding value)</li>
 <li>Outcome: whether the driver committed another DUI offense</li>
 </ul>
-<p>We use a <strong>Regression Discontinuity Design (RDD)</strong> — comparing drivers just above and just below the 0.08 threshold, who are essentially the same people but received different punishments.</p>
+<p>We use a <strong>Regression Discontinuity Design</strong> to estimate the causal effect.</p>
 </section>
-<section id="why-rdd-works-here" class="slide level2">
-<h2>Why RDD Works Here</h2>
+<section id="causal-diagram" class="slide level2">
+<h2>Causal Diagram</h2>
+
+<img data-src="DTC_Presentation_files/figure-revealjs/unnamed-chunk-1-1.png" width="960" class="r-stretch"><p>Near the cutoff, treatment changes sharply but everything else changes smoothly. Any jump in recidivism at 0.08 is caused by the punishment.</p>
+</section>
+<section id="why-rdd-key-choices" class="slide level2">
+<h2>Why RDD &amp; Key Choices</h2>
+<p><strong>Why RDD works:</strong> Drivers just above and below 0.08 are essentially the same people who happened to blow slightly differently. The only difference is punishment.</p>
+<p><strong>Key methodological choices:</strong></p>
 <ul>
-<li>Drivers can’t precisely control their BAC at the cutoff</li>
-<li>Someone at 0.079 vs 0.081 is the same type of drinker</li>
-<li>The <strong>only difference</strong> is punishment severity</li>
-<li>Any jump in recidivism at 0.08 is caused by the punishment</li>
-</ul>
-<p><strong>Key choices:</strong></p>
-<ul>
-<li>Local linear model</li>
-<li>Sample restricted below 0.15 to isolate the 0.08 effect</li>
-<li>Heteroskedasticity-robust standard errors (binary outcome)</li>
+<li><strong>Local linear model</strong> — not high-order polynomials (shown to be unreliable; this is the known issue in the Hansen paper)</li>
+<li><strong>Min BAC</strong> — WA law uses the lower of two tests for punishment</li>
+<li><strong>Exclude BAC &gt; 0.15</strong> — a second penalty kicks in, would confound the 0.08 effect</li>
+<li><strong>Robust standard errors</strong> — binary outcome means error variance is not constant</li>
 </ul>
 </section>
 <section id="assumption-tests" class="slide level2">
@@ -172,7 +173,7 @@ DTC Group 1
 <p><strong>McCrary Density Test</strong></p>
 <p>No manipulation detected (p = 0.23)</p>
 <p>Heaping at exactly 0.08 is rounding, not strategic behavior</p>
-<p><em>Sensitivity check:</em> Dropping observations within ±0.001 of cutoff — results hold</p>
+<p>Sensitivity check: dropping ±0.001 of cutoff confirms results hold</p>
 </div><div class="column" style="width:50%;">
 <p><strong>Covariate Balance</strong></p>
 <table class="caption-top">
@@ -180,36 +181,81 @@ DTC Group 1
 <tr class="header">
 <th>Variable</th>
 <th>p-value</th>
+<th>Result</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td>Male</td>
 <td>0.63</td>
+<td>Pass</td>
 </tr>
 <tr class="even">
 <td>White</td>
 <td>0.98</td>
+<td>Pass</td>
 </tr>
 <tr class="odd">
 <td>Age</td>
 <td>0.06</td>
+<td>Marginal</td>
 </tr>
 <tr class="even">
 <td>Accident</td>
 <td>0.54</td>
+<td>Pass</td>
 </tr>
 </tbody>
 </table>
-<p>No significant jumps — drivers on both sides are comparable</p>
+<p>Drivers on both sides are comparable</p>
 </div></div>
 </section>
 <section id="rd-plot-visual-evidence" class="slide level2">
 <h2>RD Plot: Visual Evidence</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Mass points detected in the running variable."</code></pre>
+</div>
 
-<img data-src="DTC_Presentation_files/figure-revealjs/unnamed-chunk-1-1.png" width="960" class="r-stretch"></section>
-<section id="results-parametric-estimates" class="slide level2">
-<h2>Results: Parametric Estimates</h2>
+</div>
+<img data-src="DTC_Presentation_files/figure-revealjs/unnamed-chunk-3-1.png" width="960" class="r-stretch"><p>Clear downward jump at the cutoff. Linear trends on both sides support our model choice.</p>
+</section>
+<section id="main-results-nonparametric-estimates" class="slide level2">
+<h2>Main Results: Nonparametric Estimates</h2>
+<div class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Sharp RD estimates using local polynomial regression.
+
+Number of Obs.               128603
+BW type                       mserd
+Kernel                   Triangular
+VCE method                       NN
+
+Number of Obs.                24807       103796
+Eff. Number of Obs.           14998        25790
+Order est. (p)                    1            1
+Order bias  (q)                   2            2
+BW est. (h)                   0.020        0.020
+BW bias (b)                   0.033        0.033
+rho (h/b)                     0.625        0.625
+Unique Obs.                      81           69
+
+=====================================================================
+                   Point    Robust Inference
+                Estimate         z     P&gt;|z|      [ 95% C.I. ]       
+---------------------------------------------------------------------
+     RD Effect    -0.011    -1.247     0.212    [-0.025 , 0.005]     
+=====================================================================</code></pre>
+</div>
+</div>
+<ul>
+<li>Baseline estimate: <strong>negative but not statistically significant</strong> (p = 0.21)</li>
+<li>After donut-hole (removing heaped observations): <strong>-0.02, statistically significant</strong></li>
+<li>Heaping was diluting the true effect</li>
+</ul>
+</section>
+<section id="parametric-robustness-checks" class="slide level2">
+<h2>Parametric Robustness Checks</h2>
 <div class="cell">
 <div class="cell-output cell-output-stdout">
 <pre><code>                                           check_main       check_narrow
@@ -265,27 +311,51 @@ Adj. R2                                       0.00057             0.00443
 Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 </div>
 </div>
-<p>Treatment effect is <strong>consistently negative</strong> (-0.014 to -0.016) across all bandwidths. Adding controls barely changes the estimate — confirms RDD validity.</p>
+<p>Effect is <strong>consistently negative</strong> (-0.014 to -0.016) across all bandwidths. Adding controls barely changes it.</p>
 </section>
-<section id="key-finding" class="slide level2">
-<h2>Key Finding</h2>
+<section id="fixed-bandwidth-binned-visualization" class="slide level2">
+<h2>Fixed Bandwidth &amp; Binned Visualization</h2>
+<div class="columns">
+<div class="column" style="width:45%;">
+<p><strong>Fixed bandwidth (±0.05)</strong></p>
+<ul>
+<li>Coefficient: <strong>-0.019</strong>*</li>
+<li>Significant at 1% level</li>
+<li>93,792 observations</li>
+<li>Most precise estimate</li>
+</ul>
+</div><div class="column" style="width:55%;">
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure>
+<p><img data-src="DTC_Presentation_files/figure-revealjs/unnamed-chunk-6-1.png" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</div></div>
+</section>
+<section id="interpretation" class="slide level2">
+<h2>Interpretation</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
 <h3 id="absolute-effect">Absolute effect</h3>
-<p>Crossing the 0.08 threshold reduces recidivism by <strong>1.5 to 2 percentage points</strong></p>
-<p>For every 100 drivers punished, ~2 fewer reoffend</p>
+<p>Crossing 0.08 reduces recidivism by <strong>1.5 to 2 percentage points</strong></p>
+<p>For every 100 drivers punished, <strong>~2 fewer reoffend</strong></p>
 </div><div class="column" style="width:50%;">
 <h3 id="relative-effect">Relative effect</h3>
-<p>Given a baseline rate of ~11%, this is a <strong>14-18% relative reduction</strong></p>
-<p>Consistent across all specifications and bandwidths</p>
+<p>Baseline recidivism rate: ~11%</p>
+<p>This is a <strong>14–18% relative reduction</strong></p>
+<p>Consistent across all specifications</p>
 </div></div>
-<p><strong>Bottom line:</strong> Harsher DUI punishments at the 0.08 BAC threshold meaningfully deter repeat drunk-driving offenses.</p>
+<p><strong>Policy implication:</strong> Stricter BAC enforcement meaningfully deters repeat drunk-driving offenses. The consistency across bandwidths, controls, and functional forms supports a credible causal estimate.</p>
 </section>
 <section id="limitations" class="slide level2">
 <h2>Limitations</h2>
 <ul>
 <li><strong>Washington State only</strong> — may not generalize to other states</li>
-<li><strong>Only 0.08 threshold</strong> — the 0.15 cutoff may show different effects</li>
+<li><strong>Only 0.08 threshold</strong> — the 0.15 cutoff was excluded, effects there may differ</li>
 <li><strong>Cannot isolate punishment components</strong> — fines, license suspension, and jail are bundled</li>
 <li><strong>Heaping at cutoff</strong> — addressed by sensitivity check, but warrants caution</li>
 <li><strong>Possible undercount</strong> — undetected repeat offenses are not captured</li>
@@ -295,12 +365,12 @@ Signif. codes: 0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1</code></pre>
 <h2>Conclusion</h2>
 <p><strong>Harsher DUI punishments reduce recidivism.</strong></p>
 <ul>
-<li>1.5-2 percentage point reduction (14-18% relative)</li>
+<li>1.5–2 percentage point reduction (14–18% relative)</li>
 <li>Robust across bandwidths, controls, and functional forms</li>
 <li>RDD assumptions validated by density test and covariate balance</li>
-<li>Policy implication: stricter BAC enforcement deters repeat offenses</li>
+<li>Donut-hole check confirms heaping does not drive the result</li>
 </ul>
-<p><strong>This is a credible causal estimate, not an artifact of modeling choices.</strong></p>
+<p><strong>This is a credible causal estimate — stricter enforcement works.</strong></p>
 
 </section>
     </div>

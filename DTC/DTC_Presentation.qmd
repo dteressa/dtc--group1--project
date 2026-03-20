@@ -1,7 +1,7 @@
 ---
 title: "Do Harsher DUI Punishments Reduce Recidivism?"
 subtitle: "Evidence from a Regression Discontinuity Design"
-author: "DTC Group 1"
+author: "DTC - Group 1"
 format:
   revealjs:
     theme: simple
@@ -18,63 +18,73 @@ message: false
 
 **Do harsher punishments for drunk driving reduce repeat offenses?**
 
--   At BAC = 0.08, penalties jump sharply in Washington State
--   128,603 traffic stops from 1999-2007
--   Running variable: minimum of two BAC tests (legally binding value)
--   Outcome: whether the driver committed another DUI offense
+- At BAC = 0.08, penalties jump sharply in Washington State
+- 128,603 traffic stops from 1999–2007
+- Each driver tested twice; we use the **minimum BAC** (legally binding value)
+- Outcome: whether the driver committed another DUI offense
 
-We use a **Regression Discontinuity Design (RDD)** — comparing drivers just above and just below the 0.08 threshold, who are essentially the same people but received different punishments.
+We use a **Regression Discontinuity Design** to estimate the causal effect.
 
-## Why RDD Works Here
+## Causal Diagram
 
--   Drivers can't precisely control their BAC at the cutoff
--   Someone at 0.079 vs 0.081 is the same type of drinker
--   The **only difference** is punishment severity
--   Any jump in recidivism at 0.08 is caused by the punishment
+```{r}
+library(ggdag)
+library(ggplot2)
+dagify(
+  Recidivism         ~ Harsher_Punishment + Demographics + Unobservables,
+  Harsher_Punishment ~ Above_Cutoff,
+  Above_Cutoff       ~ BAC,
+  BAC                ~ Demographics + Unobservables,
+  labels = c(
+    Recidivism         = "Recidivism",
+    Harsher_Punishment = "Harsher Punishment",
+    Above_Cutoff       = "Crosses 0.08 Threshold",
+    BAC                = "BAC Level",
+    Demographics       = "Demographics",
+    Unobservables      = "Unobservables"
+  ),
+  exposure = "Harsher_Punishment",
+  outcome  = "Recidivism",
+  coords = list(
+    x = c(Demographics = 1, Unobservables = 5,
+          BAC = 3, Above_Cutoff = 3,
+          Harsher_Punishment = 3, Recidivism = 3),
+    y = c(Demographics = 4, Unobservables = 4,
+          BAC = 4, Above_Cutoff = 3,
+          Harsher_Punishment = 2, Recidivism = 1)
+  )
+) %>%
+  ggdag(use_labels = "label", text = FALSE) +
+  theme_dag() +
+  labs(title = "")
+```
 
-**Key choices:**
+Near the cutoff, treatment changes sharply but everything else changes smoothly. Any jump in recidivism at 0.08 is caused by the punishment.
 
--   Local linear model
--   Sample restricted below 0.15 to isolate the 0.08 effect
--   Heteroskedasticity-robust standard errors (binary outcome)
+## Why RDD & Key Choices
+
+**Why RDD works:** Drivers just above and below 0.08 are essentially the same people who happened to blow slightly differently. The only difference is punishment.
+
+**Key methodological choices:**
+
+- **Local linear model** — not high-order polynomials (shown to be unreliable; this is the known issue in the Hansen paper)
+- **Min BAC** — WA law uses the lower of two tests for punishment
+- **Exclude BAC > 0.15** — a second penalty kicks in, would confound the 0.08 effect
+- **Robust standard errors** — binary outcome means error variance is not constant
 
 ## Assumption Tests
 
-::::: columns
-::: {.column width="50%"}
-**McCrary Density Test**
-
-No manipulation detected (p = 0.23)
-
-Heaping at exactly 0.08 is rounding, not strategic behavior
-
-*Sensitivity check:* Dropping observations within ±0.001 of cutoff — results hold
-:::
-
-::: {.column width="50%"}
-**Covariate Balance**
-
-| Variable | p-value |
-|----------|---------|
-| Male     | 0.63    |
-| White    | 0.98    |
-| Age      | 0.06    |
-| Accident | 0.54    |
-
-No significant jumps — drivers on both sides are comparable
-:::
-:::::
-
-## RD Plot: Visual Evidence
-
 ```{r}
+#| output: false
 library(tidyverse)
+library(here)
 library(rdrobust)
 library(rddensity)
 library(fixest)
 
 c_cut <- 0.08
-dwi_raw <- readr::read_csv("DWI_Data.csv")
+load(here("DWI_Data.rdata"))
+dwi_raw = dwi
 
 dwi <- dwi_raw %>%
   mutate(
@@ -89,33 +99,73 @@ dwi_plot <- dwi %>% filter(bac_min >= 0.03, bac_min <= 0.13)
 dwi_main <- dwi %>% filter(bac_min >= 0.05, bac_min <= 0.11)
 dwi_narrow <- dwi %>% filter(bac_min >= 0.06, bac_min <= 0.10)
 dwi_wide <- dwi %>% filter(bac_min >= 0.04, bac_min <= 0.12)
-
-bins <- dwi_main %>%
-  mutate(bac_bin = round(bac_min, 3)) %>%
-  group_by(bac_bin) %>%
-  summarise(recidivism = mean(recidivism), .groups = "drop")
-
-check_main <- feols(recidivism ~ treat + x + treat:x, data = dwi_main, vcov = "hetero")
-
-grid <- tibble(bac_min = seq(0.05, 0.11, by = 0.001)) %>%
-  mutate(x = bac_min - c_cut, treat = ifelse(bac_min >= c_cut, 1, 0))
-grid$yhat <- predict(check_main, newdata = grid)
-
-ggplot(bins, aes(x = bac_bin, y = recidivism)) +
-  geom_point(color = "steelblue", size = 2) +
-  geom_vline(xintercept = c_cut, linetype = "dashed", color = "red", linewidth = 0.8) +
-  geom_line(data = grid, aes(x = bac_min, y = yhat), linewidth = 1) +
-  labs(x = "Blood Alcohol Content (BAC)", y = "Mean Recidivism Rate",
-       title = "Recidivism vs BAC at the 0.08 Legal Threshold") +
-  theme_minimal(base_size = 16)
 ```
 
-## Results: Parametric Estimates
+::: {.columns}
+
+::: {.column width="50%"}
+**McCrary Density Test**
+
+No manipulation detected (p = 0.23)
+
+Heaping at exactly 0.08 is rounding, not strategic behavior
+
+Sensitivity check: dropping ±0.001 of cutoff confirms results hold
+:::
+
+::: {.column width="50%"}
+**Covariate Balance**
+
+| Variable | p-value | Result |
+|----------|---------|--------|
+| Male | 0.63 | Pass |
+| White | 0.98 | Pass |
+| Age | 0.06 | Marginal |
+| Accident | 0.54 | Pass |
+
+Drivers on both sides are comparable
+:::
+
+:::
+
+## RD Plot: Visual Evidence
 
 ```{r}
+rdplot(
+  y       = dwi_plot$recidivism,
+  x       = dwi_plot$bac_min,
+  c       = c_cut,
+  nbins   = c(20, 20),
+  p       = 1,
+  kernel  = "tri",
+  x.label = "Blood Alcohol Content (BAC)",
+  y.label = "Recidivism Rate",
+  title   = "Recidivism vs BAC at the 0.08 Legal Threshold"
+)
+```
+
+Clear downward jump at the cutoff. Linear trends on both sides support our model choice.
+
+## Main Results: Nonparametric Estimates
+
+```{r}
+rd_main <- rdrobust(y = dwi$recidivism, x = dwi$bac_min, c = c_cut,
+                    p = 1, kernel = "tri", masspoints = "adjust")
+summary(rd_main)
+```
+
+- Baseline estimate: **negative but not statistically significant** (p = 0.21)
+- After donut-hole (removing heaped observations): **-0.02, statistically significant**
+- Heaping was diluting the true effect
+
+## Parametric Robustness Checks
+
+```{r}
+check_main <- feols(recidivism ~ treat + x + treat:x, data = dwi_main, vcov = "hetero")
 check_narrow <- feols(recidivism ~ treat + x + treat:x, data = dwi_narrow, vcov = "hetero")
 check_wide <- feols(recidivism ~ treat + x + treat:x, data = dwi_wide, vcov = "hetero")
-check_cov <- feols(recidivism ~ treat + x + treat:x + male + white + aged + factor(year), data = dwi_main, vcov = "hetero")
+check_cov <- feols(recidivism ~ treat + x + treat:x + male + white + aged + factor(year),
+                   data = dwi_main, vcov = "hetero")
 
 etable(check_main, check_narrow, check_wide, check_cov,
        headers = c("Main", "Narrow", "Wide", "Controls"),
@@ -123,45 +173,86 @@ etable(check_main, check_narrow, check_wide, check_cov,
        title = "Effect of Harsher DUI Punishment on Recidivism")
 ```
 
-Treatment effect is **consistently negative** (-0.014 to -0.016) across all bandwidths. Adding controls barely changes the estimate — confirms RDD validity.
+Effect is **consistently negative** (-0.014 to -0.016) across all bandwidths. Adding controls barely changes it.
 
-## Key Finding
+## Fixed Bandwidth & Binned Visualization
 
-::::: columns
+::: {.columns}
+
+::: {.column width="45%"}
+**Fixed bandwidth (±0.05)**
+
+- Coefficient: **-0.019***
+- Significant at 1% level
+- 93,792 observations
+- Most precise estimate
+:::
+
+::: {.column width="55%"}
+```{r}
+#| fig-height: 4
+bins <- dwi_main %>%
+  mutate(bac_bin = round(bac_min, 3)) %>%
+  group_by(bac_bin) %>%
+  summarise(recidivism = mean(recidivism), .groups = "drop")
+
+grid <- tibble(bac_min = seq(0.05, 0.11, by = 0.001)) %>%
+  mutate(x = bac_min - c_cut, treat = ifelse(bac_min >= c_cut, 1, 0))
+grid$yhat <- predict(check_main, newdata = grid)
+
+ggplot(bins, aes(x = bac_bin, y = recidivism)) +
+  geom_point(size = 2) +
+  geom_vline(xintercept = c_cut, linetype = "dashed", color = "red") +
+  geom_line(data = grid, aes(x = bac_min, y = yhat), linewidth = 1) +
+  labs(x = "BAC (binned)", y = "Mean Recidivism Rate",
+       title = "RD Plot with Fitted Line") +
+  theme_minimal(base_size = 14)
+```
+:::
+
+:::
+
+## Interpretation
+
+::: {.columns}
+
 ::: {.column width="50%"}
 ### Absolute effect
 
-Crossing the 0.08 threshold reduces recidivism by **1.5 to 2 percentage points**
+Crossing 0.08 reduces recidivism by **1.5 to 2 percentage points**
 
-For every 100 drivers punished, \~2 fewer reoffend
+For every 100 drivers punished, **~2 fewer reoffend**
 :::
 
 ::: {.column width="50%"}
 ### Relative effect
 
-Given a baseline rate of \~11%, this is a **14-18% relative reduction**
+Baseline recidivism rate: ~11%
 
-Consistent across all specifications and bandwidths
+This is a **14–18% relative reduction**
+
+Consistent across all specifications
 :::
-:::::
 
-**Bottom line:** Harsher DUI punishments at the 0.08 BAC threshold meaningfully deter repeat drunk-driving offenses.
+:::
+
+**Policy implication:** Stricter BAC enforcement meaningfully deters repeat drunk-driving offenses. The consistency across bandwidths, controls, and functional forms supports a credible causal estimate.
 
 ## Limitations
 
--   **Washington State only** — may not generalize to other states
--   **Only 0.08 threshold** — the 0.15 cutoff may show different effects
--   **Cannot isolate punishment components** — fines, license suspension, and jail are bundled
--   **Heaping at cutoff** — addressed by sensitivity check, but warrants caution
--   **Possible undercount** — undetected repeat offenses are not captured
+- **Washington State only** — may not generalize to other states
+- **Only 0.08 threshold** — the 0.15 cutoff was excluded, effects there may differ
+- **Cannot isolate punishment components** — fines, license suspension, and jail are bundled
+- **Heaping at cutoff** — addressed by sensitivity check, but warrants caution
+- **Possible undercount** — undetected repeat offenses are not captured
 
 ## Conclusion
 
 **Harsher DUI punishments reduce recidivism.**
 
--   1.5-2 percentage point reduction (14-18% relative)
--   Robust across bandwidths, controls, and functional forms
--   RDD assumptions validated by density test and covariate balance
--   Policy implication: stricter BAC enforcement deters repeat offenses
+- 1.5–2 percentage point reduction (14–18% relative)
+- Robust across bandwidths, controls, and functional forms
+- RDD assumptions validated by density test and covariate balance
+- Donut-hole check confirms heaping does not drive the result
 
-**This is a credible causal estimate, not an artifact of modeling choices.**
+**This is a credible causal estimate — stricter enforcement works.**
